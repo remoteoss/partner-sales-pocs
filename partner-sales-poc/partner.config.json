@@ -1,0 +1,27 @@
+{
+  "company": {
+    "name": "Partner Sales Demo",
+    "website": "https://remote.com"
+  },
+  "logo": {
+    "src": "/logo.svg",
+    "alt": "Partner Logo"
+  },
+  "colors": {
+    "primary": "#0061FF",
+    "secondary": "#8d969e",
+    "tertiary": "#FAFCFF",
+    "accent": "#0052D9",
+    "error": "#FF4A5A",
+    "success": "#00C48C",
+    "borders": "#E3E9EF",
+    "input": "#9AA6B2",
+    "background": "#ffffff",
+    "foreground": "#1a1a1a"
+  },
+  "fonts": {
+    "family": "Inter, system-ui, sans-serif",
+    "headingFamily": "Inter, system-ui, sans-serif"
+  }
+}
+
