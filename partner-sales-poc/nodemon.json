@@ -1,0 +1,7 @@
+{
+  "watch": ["server"],
+  "ext": "js,mjs,cjs",
+  "ignore": ["server/counter.json", "server/session.json"],
+  "exec": "node server/dev-server.js"
+}
+

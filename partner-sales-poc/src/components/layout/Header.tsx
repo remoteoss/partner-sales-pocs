@@ -5,42 +5,43 @@ export function Header() {
   const location = useLocation();
 
   const navLinks = [
-    { path: '/', label: 'Home' },
     { path: '/create-company', label: 'Create Company' },
     { path: '/create-employment', label: 'Create Employment' },
   ];
 
   return (
     <header 
-      className="flex h-16 items-center justify-between px-6 border-b"
+      className="border-b"
       style={{ 
         borderColor: config.colors.borders,
-        backgroundColor: config.colors.tertiary 
+        backgroundColor: config.colors.background 
       }}
     >
-      <nav className="flex items-center space-x-6">
-        <Link to="/" className="flex items-center">
+      <div className="px-8 py-4 flex items-center justify-between">
+        {/* Logo → Home */}
+        <Link to="/" className="hover:opacity-80 transition-opacity">
           <img src={config.logo.src} alt={config.logo.alt} className="h-8" />
         </Link>
         
-        {navLinks.map((link) => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className="text-sm font-medium transition-colors"
-            style={{
-              color: location.pathname === link.path 
-                ? config.colors.primary 
-                : config.colors.secondary,
-            }}
-          >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
-      
-      <div className="text-sm" style={{ color: config.colors.secondary }}>
-        {config.company.name}
+        {/* Nav Links */}
+        <nav className="flex items-center gap-12">
+          {navLinks.map((link) => {
+            const isActive = location.pathname === link.path;
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="text-sm font-medium pb-1 transition-colors"
+                style={{
+                  color: isActive ? config.colors.foreground : config.colors.secondary,
+                  borderBottom: isActive ? `2px solid ${config.colors.primary}` : '2px solid transparent',
+                }}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
     </header>
   );

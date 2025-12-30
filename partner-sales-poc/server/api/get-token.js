@@ -6,7 +6,7 @@ const ENVIRONMENTS = {
   staging: 'https://gateway.niceremote.com',
 };
 
-function buildGatewayURL() {
+export function buildGatewayURL() {
   const env = process.env.VITE_REMOTE_GATEWAY || 'partners';
   return ENVIRONMENTS[env] || ENVIRONMENTS.partners;
 }
@@ -19,7 +19,7 @@ let customerTokenCache = null;
  * Fetch partner-level token (client credentials flow)
  * Used for company creation
  */
-async function fetchPartnerToken() {
+export async function fetchPartnerToken() {
   const { VITE_CLIENT_ID, VITE_CLIENT_SECRET } = process.env;
 
   if (!VITE_CLIENT_ID || !VITE_CLIENT_SECRET) {
@@ -55,7 +55,7 @@ async function fetchPartnerToken() {
  * Fetch customer-level token (refresh token flow)
  * Used for employment creation and other customer operations
  */
-async function fetchCustomerToken() {
+export async function fetchCustomerToken() {
   const { VITE_CLIENT_ID, VITE_CLIENT_SECRET, VITE_REFRESH_TOKEN, VITE_REMOTE_GATEWAY } = process.env;
 
   if (!VITE_CLIENT_ID || (!VITE_CLIENT_SECRET && VITE_REMOTE_GATEWAY !== 'local') || !VITE_REFRESH_TOKEN) {
@@ -89,7 +89,7 @@ async function fetchCustomerToken() {
 }
 
 // Express route handlers
-async function getPartnerToken(req, res) {
+export async function getPartnerToken(req, res) {
   try {
     if (partnerTokenCache && partnerTokenCache.expiresAt > Date.now()) {
       return res.status(200).json({
@@ -114,7 +114,7 @@ async function getPartnerToken(req, res) {
   }
 }
 
-async function getCustomerToken(req, res) {
+export async function getCustomerToken(req, res) {
   try {
     if (customerTokenCache && customerTokenCache.expiresAt > Date.now()) {
       return res.status(200).json({
@@ -138,12 +138,3 @@ async function getCustomerToken(req, res) {
     return res.status(500).json({ error: 'Failed to retrieve customer token' });
   }
 }
-
-module.exports = { 
-  getPartnerToken, 
-  getCustomerToken, 
-  fetchPartnerToken, 
-  fetchCustomerToken,
-  buildGatewayURL 
-};
-

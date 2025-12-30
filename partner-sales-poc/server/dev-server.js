@@ -1,7 +1,7 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const { createServer: createViteServer } = require('vite');
-const { setupRoutes } = require('./api/routes.js');
+import express from 'express';
+import dotenv from 'dotenv';
+import { createServer as createViteServer } from 'vite';
+import { setupRoutes } from './api/routes.js';
 
 dotenv.config();
 
@@ -22,8 +22,8 @@ const startServer = async () => {
   // Use Vite's middleware
   app.use(vite.middlewares);
 
-  // Serve index.html (SPA fallback)
-  app.use('*', async (req, res, next) => {
+  // Serve index.html (SPA fallback) - Express 5 syntax
+  app.use('/{*splat}', async (req, res, next) => {
     try {
       const url = req.originalUrl;
       const template = await vite.transformIndexHtml(
@@ -43,4 +43,3 @@ const startServer = async () => {
 };
 
 startServer();
-

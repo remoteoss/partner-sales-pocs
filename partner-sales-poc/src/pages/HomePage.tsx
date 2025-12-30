@@ -8,7 +8,7 @@ export function HomePage() {
   const features = [
     {
       title: 'Create Company',
-      description: 'Register a new company on the Remote platform using the direct API.',
+      description: 'Register a new company on the Remote platform. Magic link into dashboard or continue with SDK.',
       icon: Building2,
       path: '/create-company',
       color: config.colors.primary,
@@ -75,6 +75,9 @@ export function HomePage() {
           </li>
           <li>
             <strong>API Approach:</strong> Direct REST API calls with @remoteoss/json-schema-form for dynamic forms
+          </li>
+          <li>
+            <strong>Magic Link:</strong> Seamless SSO into Remote dashboard for advanced workflows
           </li>
         </ul>
       </Card>

@@ -8,6 +8,13 @@ export const companyFields = [
     required: true,
   },
   {
+    name: 'tax_number',
+    label: 'Tax Number',
+    type: 'text',
+    required: true,
+    description: 'Company tax identification number',
+  },
+  {
     name: 'company_owner_name',
     label: 'Company Owner Name',
     type: 'text',
@@ -54,9 +61,9 @@ export const companyFields = [
 
 export const companyValidationSchema = Yup.object({
   name: Yup.string().required('Company name is required'),
+  tax_number: Yup.string().required('Tax number is required'),
   company_owner_name: Yup.string().required('Owner name is required'),
   company_owner_email: Yup.string().email('Invalid email').required('Email is required'),
   country_code: Yup.string().required('Country is required'),
   desired_currency: Yup.string().required('Currency is required'),
 });
-

@@ -2,14 +2,15 @@ import { ReactNode } from 'react';
 import {
   RemoteFlows as RemoteFlowsProvider,
 } from '@remoteoss/remote-flows';
-import { defaultComponents } from '@remoteoss/remote-flows/default-components';
 import '@remoteoss/remote-flows/styles.css';
 
 interface RemoteFlowsWrapperProps {
   children: ReactNode;
+  useSessionToken?: boolean; // If true, use session token from newly created company
 }
 
-const fetchToken = async () => {
+// Fetch token from .env credentials (default behavior)
+const fetchEnvToken = async () => {
   const response = await fetch('/api/fetch-customer-token');
   const data = await response.json();
   return {
@@ -18,14 +19,30 @@ const fetchToken = async () => {
   };
 };
 
-export function RemoteFlowsWrapper({ children }: RemoteFlowsWrapperProps) {
+// Fetch token from session (newly created company)
+const fetchSessionToken = async () => {
+  const response = await fetch('/api/session/token');
+  if (!response.ok) {
+    console.warn('Session token not available, falling back to env token');
+    return fetchEnvToken();
+  }
+  const data = await response.json();
+  return {
+    accessToken: data.access_token,
+    expiresIn: data.expires_in,
+  };
+};
+
+export function RemoteFlowsWrapper({ children, useSessionToken = false }: RemoteFlowsWrapperProps) {
   const environment = (import.meta.env.VITE_REMOTE_GATEWAY as 'partners' | 'sandbox' | 'production') || 'partners';
+
+  // Choose token source based on prop
+  const fetchToken = useSessionToken ? fetchSessionToken : fetchEnvToken;
 
   return (
     <RemoteFlowsProvider
       auth={fetchToken}
       environment={environment}
-      components={defaultComponents}
       debug
       errorBoundary={{
         useParentErrorBoundary: false,
@@ -40,4 +57,3 @@ export function RemoteFlowsWrapper({ children }: RemoteFlowsWrapperProps) {
     </RemoteFlowsProvider>
   );
 }
-
