@@ -1,17 +1,17 @@
 {
   "company": {
-    "name": "Malt",
-    "website": "https://malt.com"
+    "name": "ADP",
+    "website": "https://adp.com"
   },
   "logo": {
-    "src": "/malt-logo.svg",
-    "alt": "Malt Logo"
+    "src": "/adp-logo.svg",
+    "alt": "ADP Logo"
   },
   "colors": {
-    "primary": "#FF5C57",
+    "primary": "#D0271D",
     "secondary": "#666666",
-    "tertiary": "#FFF5F5",
-    "accent": "#FF5C57",
+    "tertiary": "#FFF0F0",
+    "accent": "#D0271D",
     "error": "#E53E3E",
     "success": "#38A169",
     "borders": "#E8E8E8",
