@@ -1,87 +1,151 @@
 import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import config from '../config/partner';
-import { Building2, Users } from 'lucide-react';
+import { UserPlus, FileText, Clock, CheckSquare } from 'lucide-react';
+
+type Hire = {
+  name: string;
+  position: string;
+  startDate: string;
+  location: string;
+  status: 'Pending' | 'Onboarding' | 'Active';
+};
+
+const RECENT_HIRES: Hire[] = [
+  { name: 'Samantha Reyes', position: 'Senior Product Designer', startDate: 'Apr 22, 2026', location: 'Toronto, CA', status: 'Onboarding' },
+  { name: 'Daniel Okafor', position: 'Engineering Manager', startDate: 'Apr 28, 2026', location: 'Berlin, DE', status: 'Pending' },
+  { name: 'Aiko Tanaka', position: 'Data Scientist', startDate: 'May 04, 2026', location: 'Remote — JP', status: 'Pending' },
+  { name: 'Priya Natarajan', position: 'Customer Success Lead', startDate: 'Mar 31, 2026', location: 'Mumbai, IN', status: 'Active' },
+];
+
+const TODO_ITEMS = [
+  { label: 'Review time-off requests', meta: '4 pending' },
+  { label: 'Review your e-statement', meta: 'March 2026' },
+  { label: 'Complete your Things To Do tasks', meta: '2 open' },
+];
+
+function StatusPill({ status }: { status: Hire['status'] }) {
+  const styles: Record<Hire['status'], string> = {
+    Pending: 'bg-tertiary text-primary border-primary/30',
+    Onboarding: 'bg-accent/10 text-accent border-accent/30',
+    Active: 'bg-success/10 text-success border-success/30',
+  };
+  return (
+    <span className={`inline-block px-2 py-0.5 text-[11px] font-medium rounded-sm border ${styles[status]}`}>
+      {status}
+    </span>
+  );
+}
 
 export function HomePage() {
-  const features = [
-    {
-      title: 'Create Company',
-      description: 'Register a new company on the Remote platform. Magic link into dashboard or continue with SDK.',
-      icon: Building2,
-      path: '/create-company',
-      color: config.colors.primary,
-    },
-    {
-      title: 'Create Employment',
-      description: 'Onboard a new employee using either the SDK or direct API approach.',
-      icon: Users,
-      path: '/create-employment',
-      color: config.colors.accent,
-    },
-  ];
-
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="text-center mb-12">
-        <h1
-          className="text-4xl font-bold mb-4"
-          style={{ color: config.colors.foreground, fontFamily: config.fonts.headingFamily }}
-        >
-          Partner Sales Demo
-        </h1>
-        <p className="text-lg" style={{ color: config.colors.secondary }}>
-          Demonstrate Remote's embedded solution capabilities to potential partners
-        </p>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Page title */}
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">HR Dashboard</h1>
+          <p className="text-sm text-secondary">Manage hiring, onboarding, and team changes</p>
+        </div>
+        <Link to="/new-hire">
+          <Button variant="accent" size="md">
+            <UserPlus size={14} />
+            Start New Hire
+          </Button>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {features.map((feature) => (
-          <Card key={feature.path} className="hover:shadow-lg transition-shadow">
-            <div className="flex items-start gap-4">
-              <div
-                className="p-3 rounded-lg"
-                style={{ backgroundColor: `${feature.color}15` }}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main column */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card title="Start Employee Onboarding" headerAccent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Link
+                to="/new-hire"
+                className="group flex items-start gap-3 p-4 border border-border rounded-sm hover:border-primary hover:bg-tertiary transition-colors"
               >
-                <feature.icon size={24} style={{ color: feature.color }} />
+                <div className="p-2 rounded-sm bg-primary/10 text-primary">
+                  <UserPlus size={18} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Hire and Onboard Employees</p>
+                  <p className="text-xs text-secondary mt-1">Start a new hire — domestic or international.</p>
+                </div>
+              </Link>
+
+              <div className="flex items-start gap-3 p-4 border border-border rounded-sm opacity-70">
+                <div className="p-2 rounded-sm bg-secondary/10 text-secondary">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Create Services &amp; Contractors</p>
+                  <p className="text-xs text-secondary mt-1">Add non-employee workers. (Disabled in demo.)</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3
-                  className="text-lg font-semibold mb-2"
-                  style={{ color: config.colors.foreground }}
-                >
-                  {feature.title}
-                </h3>
-                <p className="text-sm mb-4" style={{ color: config.colors.secondary }}>
-                  {feature.description}
+            </div>
+          </Card>
+
+          <Card title="Recent Hires">
+            <div className="overflow-x-auto -mx-5">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[11px] uppercase tracking-wide text-secondary bg-surface border-y border-border">
+                    <th className="px-5 py-2 text-left font-semibold">Name</th>
+                    <th className="px-5 py-2 text-left font-semibold">Position</th>
+                    <th className="px-5 py-2 text-left font-semibold">Start Date</th>
+                    <th className="px-5 py-2 text-left font-semibold">Location</th>
+                    <th className="px-5 py-2 text-left font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {RECENT_HIRES.map((h) => (
+                    <tr key={h.name} className="border-b border-border hover:bg-surface transition-colors">
+                      <td className="px-5 py-3 font-medium text-foreground">{h.name}</td>
+                      <td className="px-5 py-3 text-secondary">{h.position}</td>
+                      <td className="px-5 py-3 text-secondary">{h.startDate}</td>
+                      <td className="px-5 py-3 text-secondary">{h.location}</td>
+                      <td className="px-5 py-3"><StatusPill status={h.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+
+        {/* Side column */}
+        <div className="space-y-6">
+          <Card title="Manager Tool Kit">
+            <ul className="divide-y divide-border -my-2">
+              {TODO_ITEMS.map((item) => (
+                <li key={item.label} className="flex items-center justify-between py-3 text-sm">
+                  <div className="flex items-center gap-3">
+                    <CheckSquare size={14} className="text-primary" />
+                    <span className="text-foreground">{item.label}</span>
+                  </div>
+                  <span className="text-xs text-secondary">{item.meta}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          <Card title="Recommended" headerAccent>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-sm bg-accent/10 text-accent">
+                <Clock size={18} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Hiring internationally?</p>
+                <p className="text-xs text-secondary mt-1 mb-3">
+                  ADP Global Payroll Solutions + Remote makes it easy to hire outside your entity.
                 </p>
-                <Link to={feature.path}>
-                  <Button variant="outline">Get Started →</Button>
+                <Link to="/new-hire">
+                  <Button variant="outline" size="sm">Learn more</Button>
                 </Link>
               </div>
             </div>
           </Card>
-        ))}
+        </div>
       </div>
-
-      <Card className="mt-8" title="About This Demo">
-        <p className="text-sm" style={{ color: config.colors.secondary }}>
-          This demo showcases two approaches to integrating with Remote:
-        </p>
-        <ul className="mt-4 space-y-2 text-sm" style={{ color: config.colors.secondary }}>
-          <li>
-            <strong>SDK Approach:</strong> Using @remoteoss/remote-flows for pre-built UI components
-          </li>
-          <li>
-            <strong>API Approach:</strong> Direct REST API calls with @remoteoss/json-schema-form for dynamic forms
-          </li>
-          <li>
-            <strong>Magic Link:</strong> Seamless SSO into Remote dashboard for advanced workflows
-          </li>
-        </ul>
-      </Card>
     </div>
   );
 }
-

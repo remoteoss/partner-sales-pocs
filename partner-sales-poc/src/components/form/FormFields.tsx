@@ -1,5 +1,5 @@
+import { ReactNode } from 'react';
 import { Field as FormikField, ErrorMessage as FormikErrorMessage } from 'formik';
-import config from '../../config/partner';
 
 interface FieldProps {
   name: string;
@@ -12,122 +12,84 @@ interface FieldProps {
   meta?: Record<string, unknown>;
 }
 
-// Text input field
+const fieldClass =
+  'w-full h-9 px-3 text-sm rounded-sm border border-input bg-background text-foreground focus:outline-none focus:border-primary';
+const labelClass = 'block text-xs font-semibold uppercase tracking-wide text-secondary mb-1';
+const descClass = 'text-[11px] mt-1 text-secondary';
+const errorClass = 'text-xs mt-1 text-error';
+
+function FieldWrapper({
+  label,
+  description,
+  required,
+  name,
+  children,
+}: {
+  label?: string;
+  description?: string;
+  required?: boolean;
+  name: string;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      {label && (
+        <label htmlFor={name} className={labelClass}>
+          {label}
+          {required && <span className="text-accent"> *</span>}
+        </label>
+      )}
+      {children}
+      {description && <p className={descClass}>{description}</p>}
+      <FormikErrorMessage name={name}>
+        {(msg) => <p className={errorClass}>{msg}</p>}
+      </FormikErrorMessage>
+    </div>
+  );
+}
+
 export function FieldText({ name, label, description, required }: FieldProps) {
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1" style={{ color: config.colors.foreground }}>
-        {label}
-        {required && <span style={{ color: config.colors.error }}> *</span>}
-      </label>
-      <FormikField
-        type="text"
-        name={name}
-        id={name}
-        className="w-full p-2 rounded-lg text-sm"
-        style={{ border: `1px solid ${config.colors.input}`, backgroundColor: config.colors.background }}
-      />
-      {description && (
-        <p className="text-xs mt-1" style={{ color: config.colors.secondary }}>{description}</p>
-      )}
-      <FormikErrorMessage name={name}>
-        {(msg) => <p className="text-xs mt-1" style={{ color: config.colors.error }}>{msg}</p>}
-      </FormikErrorMessage>
-    </div>
+    <FieldWrapper name={name} label={label} description={description} required={required}>
+      <FormikField type="text" name={name} id={name} className={fieldClass} />
+    </FieldWrapper>
   );
 }
 
-// Email input field
 export function FieldEmail({ name, label, description, required }: FieldProps) {
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1" style={{ color: config.colors.foreground }}>
-        {label}
-        {required && <span style={{ color: config.colors.error }}> *</span>}
-      </label>
-      <FormikField
-        type="email"
-        name={name}
-        id={name}
-        className="w-full p-2 rounded-lg text-sm"
-        style={{ border: `1px solid ${config.colors.input}`, backgroundColor: config.colors.background }}
-      />
-      {description && (
-        <p className="text-xs mt-1" style={{ color: config.colors.secondary }}>{description}</p>
-      )}
-      <FormikErrorMessage name={name}>
-        {(msg) => <p className="text-xs mt-1" style={{ color: config.colors.error }}>{msg}</p>}
-      </FormikErrorMessage>
-    </div>
+    <FieldWrapper name={name} label={label} description={description} required={required}>
+      <FormikField type="email" name={name} id={name} className={fieldClass} />
+    </FieldWrapper>
   );
 }
 
-// Number input field
 export function FieldNumber({ name, label, description, required }: FieldProps) {
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1" style={{ color: config.colors.foreground }}>
-        {label}
-        {required && <span style={{ color: config.colors.error }}> *</span>}
-      </label>
-      <FormikField
-        type="number"
-        name={name}
-        id={name}
-        className="w-full p-2 rounded-lg text-sm"
-        style={{ border: `1px solid ${config.colors.input}`, backgroundColor: config.colors.background }}
-      />
-      {description && (
-        <p className="text-xs mt-1" style={{ color: config.colors.secondary }}>{description}</p>
-      )}
-      <FormikErrorMessage name={name}>
-        {(msg) => <p className="text-xs mt-1" style={{ color: config.colors.error }}>{msg}</p>}
-      </FormikErrorMessage>
-    </div>
+    <FieldWrapper name={name} label={label} description={description} required={required}>
+      <FormikField type="number" name={name} id={name} className={fieldClass} />
+    </FieldWrapper>
   );
 }
 
-// Textarea field
 export function FieldTextarea({ name, label, description, required }: FieldProps) {
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1" style={{ color: config.colors.foreground }}>
-        {label}
-        {required && <span style={{ color: config.colors.error }}> *</span>}
-      </label>
+    <FieldWrapper name={name} label={label} description={description} required={required}>
       <FormikField
         as="textarea"
         name={name}
         id={name}
         rows={3}
-        className="w-full p-2 rounded-lg text-sm"
-        style={{ border: `1px solid ${config.colors.input}`, backgroundColor: config.colors.background }}
+        className="w-full px-3 py-2 text-sm rounded-sm border border-input bg-background text-foreground focus:outline-none focus:border-primary"
       />
-      {description && (
-        <p className="text-xs mt-1" style={{ color: config.colors.secondary }}>{description}</p>
-      )}
-      <FormikErrorMessage name={name}>
-        {(msg) => <p className="text-xs mt-1" style={{ color: config.colors.error }}>{msg}</p>}
-      </FormikErrorMessage>
-    </div>
+    </FieldWrapper>
   );
 }
 
-// Select dropdown field
 export function FieldSelect({ name, label, description, options, required }: FieldProps) {
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1" style={{ color: config.colors.foreground }}>
-        {label}
-        {required && <span style={{ color: config.colors.error }}> *</span>}
-      </label>
-      <FormikField
-        as="select"
-        name={name}
-        id={name}
-        className="w-full p-2 rounded-lg text-sm"
-        style={{ border: `1px solid ${config.colors.input}`, backgroundColor: config.colors.background }}
-      >
+    <FieldWrapper name={name} label={label} description={description} required={required}>
+      <FormikField as="select" name={name} id={name} className={fieldClass}>
         <option value="">Select...</option>
         {options?.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -135,98 +97,62 @@ export function FieldSelect({ name, label, description, options, required }: Fie
           </option>
         ))}
       </FormikField>
-      {description && (
-        <p className="text-xs mt-1" style={{ color: config.colors.secondary }}>{description}</p>
-      )}
-      <FormikErrorMessage name={name}>
-        {(msg) => <p className="text-xs mt-1" style={{ color: config.colors.error }}>{msg}</p>}
-      </FormikErrorMessage>
-    </div>
+    </FieldWrapper>
   );
 }
 
-// Radio button field
 export function FieldRadio({ name, label, description, options, required }: FieldProps) {
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-2" style={{ color: config.colors.foreground }}>
-        {label}
-        {required && <span style={{ color: config.colors.error }}> *</span>}
-      </label>
-      {description && (
-        <p className="text-xs mb-2" style={{ color: config.colors.secondary }}>{description}</p>
+    <div>
+      {label && (
+        <label className={labelClass}>
+          {label}
+          {required && <span className="text-accent"> *</span>}
+        </label>
       )}
-      <div className="space-y-2">
+      {description && <p className="text-[11px] mb-2 text-secondary">{description}</p>}
+      <div className="space-y-1.5">
         {options?.map((opt) => (
-          <label key={opt.value} className="flex items-center text-sm cursor-pointer">
-            <FormikField
-              type="radio"
-              name={name}
-              value={opt.value}
-              className="mr-2"
-            />
+          <label key={opt.value} className="flex items-center text-sm text-foreground cursor-pointer">
+            <FormikField type="radio" name={name} value={opt.value} className="mr-2 accent-primary" />
             {opt.label}
           </label>
         ))}
       </div>
       <FormikErrorMessage name={name}>
-        {(msg) => <p className="text-xs mt-1" style={{ color: config.colors.error }}>{msg}</p>}
+        {(msg) => <p className={errorClass}>{msg}</p>}
       </FormikErrorMessage>
     </div>
   );
 }
 
-// Checkbox field
 export function FieldCheckbox({ name, label, description, required }: FieldProps) {
   return (
-    <div className="mb-4">
-      <label className="flex items-center text-sm cursor-pointer">
-        <FormikField
-          type="checkbox"
-          name={name}
-          className="mr-2"
-        />
-        <span style={{ color: config.colors.foreground }}>
+    <div>
+      <label className="flex items-center text-sm cursor-pointer text-foreground">
+        <FormikField type="checkbox" name={name} className="mr-2 accent-primary" />
+        <span>
           {label}
-          {required && <span style={{ color: config.colors.error }}> *</span>}
+          {required && <span className="text-accent"> *</span>}
         </span>
       </label>
-      {description && (
-        <p className="text-xs mt-1 ml-6" style={{ color: config.colors.secondary }}>{description}</p>
-      )}
+      {description && <p className="text-[11px] mt-1 ml-6 text-secondary">{description}</p>}
       <FormikErrorMessage name={name}>
-        {(msg) => <p className="text-xs mt-1" style={{ color: config.colors.error }}>{msg}</p>}
+        {(msg) => <p className={errorClass}>{msg}</p>}
       </FormikErrorMessage>
     </div>
   );
 }
 
-// Date field
 export function FieldDate({ name, label, description, required }: FieldProps) {
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1" style={{ color: config.colors.foreground }}>
-        {label}
-        {required && <span style={{ color: config.colors.error }}> *</span>}
-      </label>
-      <FormikField
-        type="date"
-        name={name}
-        id={name}
-        className="w-full p-2 rounded-lg text-sm"
-        style={{ border: `1px solid ${config.colors.input}`, backgroundColor: config.colors.background }}
-      />
-      {description && (
-        <p className="text-xs mt-1" style={{ color: config.colors.secondary }}>{description}</p>
-      )}
-      <FormikErrorMessage name={name}>
-        {(msg) => <p className="text-xs mt-1" style={{ color: config.colors.error }}>{msg}</p>}
-      </FormikErrorMessage>
-    </div>
+    <FieldWrapper name={name} label={label} description={description} required={required}>
+      <FormikField type="date" name={name} id={name} className={fieldClass} />
+    </FieldWrapper>
   );
 }
 
-// Field type mapping
+// eslint-disable-next-line react-refresh/only-export-components
 export const fieldsMapConfig: Record<string, React.ComponentType<FieldProps>> = {
   text: FieldText,
   email: FieldEmail,
@@ -240,4 +166,3 @@ export const fieldsMapConfig: Record<string, React.ComponentType<FieldProps>> = 
   date: FieldDate,
   countries: FieldSelect,
 };
-

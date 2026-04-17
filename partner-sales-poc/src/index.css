@@ -1,10 +1,27 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-primary: #003D7A;
+  --color-primary-hover: #0076C0;
+  --color-secondary: #666666;
+  --color-tertiary: #F4F6FA;
+  --color-accent: #D0271D;
+  --color-accent-hover: #B01F17;
+  --color-error: #E53E3E;
+  --color-success: #38A169;
+  --color-border: #DDE2E8;
+  --color-input: #999999;
+  --color-background: #ffffff;
+  --color-surface: #F7F9FC;
+  --color-foreground: #1A1A1A;
+  --font-sans: Inter, system-ui, sans-serif;
+}
+
 /* Base styles */
 body {
   margin: 0;
   padding: 0;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -28,8 +45,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #0061FF !important;
-  box-shadow: 0 0 0 2px rgba(0, 97, 255, 0.1);
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 /* Button hover states */

@@ -1,43 +1,37 @@
 import { ButtonHTMLAttributes, forwardRef } from 'react';
-import config from '../../config/partner';
+
+type Variant = 'primary' | 'accent' | 'secondary' | 'outline' | 'ghost';
+type Size = 'sm' | 'md';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: Variant;
+  size?: Size;
 }
 
+const VARIANT_CLASSES: Record<Variant, string> = {
+  primary:
+    'bg-primary text-white hover:bg-primary-hover border border-primary hover:border-primary-hover',
+  accent:
+    'bg-accent text-white hover:bg-accent-hover border border-accent hover:border-accent-hover',
+  secondary:
+    'bg-white text-foreground border border-border hover:bg-tertiary',
+  outline:
+    'bg-transparent text-primary border border-primary hover:bg-tertiary',
+  ghost:
+    'bg-transparent text-primary border border-transparent hover:bg-tertiary',
+};
+
+const SIZE_CLASSES: Record<Size, string> = {
+  sm: 'h-8 px-3 text-xs',
+  md: 'h-9 px-4 text-sm',
+};
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ children, variant = 'primary', className = '', style, ...props }, ref) => {
-    const baseStyles = {
-      padding: '0.5rem 1rem',
-      borderRadius: '0.5rem',
-      fontWeight: 500,
-      fontSize: '0.875rem',
-      cursor: 'pointer',
-      transition: 'all 0.2s',
-      border: 'none',
-    };
-
-    const variants = {
-      primary: {
-        backgroundColor: config.colors.primary,
-        color: '#ffffff',
-      },
-      secondary: {
-        backgroundColor: config.colors.tertiary,
-        color: config.colors.foreground,
-      },
-      outline: {
-        backgroundColor: 'transparent',
-        color: config.colors.primary,
-        border: `1px solid ${config.colors.primary}`,
-      },
-    };
-
+  ({ children, variant = 'primary', size = 'md', className = '', ...props }, ref) => {
     return (
       <button
         ref={ref}
-        className={className}
-        style={{ ...baseStyles, ...variants[variant], ...style }}
+        className={`inline-flex items-center justify-center gap-2 font-medium rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
         {...props}
       >
         {children}
@@ -47,4 +41,3 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
-

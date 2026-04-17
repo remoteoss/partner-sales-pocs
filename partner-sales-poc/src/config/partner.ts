@@ -11,14 +11,17 @@ export interface PartnerConfig {
   };
   colors: {
     primary: string;
+    primaryHover: string;
     secondary: string;
     tertiary: string;
     accent: string;
+    accentHover: string;
     error: string;
     success: string;
     borders: string;
     input: string;
     background: string;
+    surface: string;
     foreground: string;
   };
   fonts: {

@@ -1,37 +1,44 @@
 import { ReactNode } from 'react';
-import config from '../../config/partner';
 
 interface CardProps {
   children: ReactNode;
   title?: string;
   description?: string;
   className?: string;
+  headerAccent?: boolean;
 }
 
-export function Card({ children, title, description, className = '' }: CardProps) {
+export function Card({
+  children,
+  title,
+  description,
+  className = '',
+  headerAccent = false,
+}: CardProps) {
+  const hasHeader = Boolean(title || description);
   return (
     <div
-      className={`rounded-lg p-6 ${className}`}
-      style={{
-        backgroundColor: config.colors.background,
-        border: `1px solid ${config.colors.borders}`,
-      }}
+      className={`bg-background border border-border rounded-sm shadow-sm ${className}`}
     >
-      {title && (
-        <h2
-          className="text-xl font-semibold mb-2"
-          style={{ color: config.colors.foreground, fontFamily: config.fonts.headingFamily }}
+      {hasHeader && (
+        <div
+          className={`px-5 py-3 border-b border-border ${
+            headerAccent ? 'border-t-2 border-t-accent' : ''
+          }`}
         >
-          {title}
-        </h2>
+          {title && (
+            <h2 className="text-sm font-semibold text-foreground tracking-wide uppercase">
+              {title}
+            </h2>
+          )}
+          {description && (
+            <p className="text-xs text-secondary mt-1 normal-case">
+              {description}
+            </p>
+          )}
+        </div>
       )}
-      {description && (
-        <p className="text-sm mb-4" style={{ color: config.colors.secondary }}>
-          {description}
-        </p>
-      )}
-      {children}
+      <div className="px-5 py-4">{children}</div>
     </div>
   );
 }
-

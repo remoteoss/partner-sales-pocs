@@ -3,7 +3,6 @@ import { createHeadlessForm, modify } from '@remoteoss/json-schema-form';
 import { Formik, Form as FormikForm } from 'formik';
 import { fieldsMapConfig } from './FormFields';
 import { Button } from '../ui/Button';
-import config from '../../config/partner';
 
 interface JsonSchemaFormProps {
   jsonSchema: Record<string, unknown>;
@@ -109,6 +108,7 @@ export function JsonSchemaForm({
         fields: {},
       });
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setModifiedSchema(modified);
       setSchemaError(null);
 
@@ -123,10 +123,9 @@ export function JsonSchemaForm({
 
   if (schemaError) {
     return (
-      <div className="p-4 rounded-lg" style={{ backgroundColor: `${config.colors.error}10` }}>
-        <p className="text-sm" style={{ color: config.colors.error }}>
-          Error loading form schema: {schemaError}
-        </p>
+      <div className="border-l-4 border-error bg-error/5 px-4 py-3 rounded-sm">
+        <p className="text-sm font-semibold text-error">Error loading form schema</p>
+        <p className="text-xs text-secondary mt-1">{schemaError}</p>
       </div>
     );
   }
@@ -134,12 +133,8 @@ export function JsonSchemaForm({
   if (!modifiedSchema) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin h-6 w-6 border-2 rounded-full" 
-          style={{ borderColor: config.colors.primary, borderTopColor: 'transparent' }} 
-        />
-        <span className="ml-2 text-sm" style={{ color: config.colors.secondary }}>
-          Loading form...
-        </span>
+        <div className="animate-spin h-6 w-6 border-[3px] border-border border-t-accent rounded-full" />
+        <span className="ml-2 text-sm text-secondary">Loading form...</span>
       </div>
     );
   }
@@ -186,7 +181,7 @@ export function JsonSchemaForm({
             if (!FieldComponent) {
               console.warn(`Unsupported field type: ${field.inputType}`);
               return (
-                <div key={field.name} className="p-2 rounded text-xs" style={{ backgroundColor: config.colors.tertiary }}>
+                <div key={field.name} className="p-2 rounded-sm text-xs bg-tertiary text-secondary">
                   Unsupported field type: {field.inputType} ({field.name})
                 </div>
               );
@@ -205,13 +200,13 @@ export function JsonSchemaForm({
             );
           })}
 
-          <div className="flex gap-2 pt-4">
-            {onBack && (
-              <Button type="button" variant="outline" onClick={onBack}>
+          <div className="flex justify-between items-center gap-2 pt-4 border-t border-border">
+            {onBack ? (
+              <Button type="button" variant="secondary" onClick={onBack}>
                 Back
               </Button>
-            )}
-            <Button type="submit" disabled={isSubmitting}>
+            ) : <span />}
+            <Button type="submit" variant="accent" disabled={isSubmitting}>
               {isSubmitting ? 'Submitting...' : submitLabel}
             </Button>
           </div>

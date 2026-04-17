@@ -8,15 +8,18 @@
     "alt": "ADP Logo"
   },
   "colors": {
-    "primary": "#D0271D",
+    "primary": "#003D7A",
+    "primaryHover": "#0076C0",
     "secondary": "#666666",
-    "tertiary": "#FFF0F0",
+    "tertiary": "#F4F6FA",
     "accent": "#D0271D",
+    "accentHover": "#B01F17",
     "error": "#E53E3E",
     "success": "#38A169",
-    "borders": "#E8E8E8",
+    "borders": "#DDE2E8",
     "input": "#999999",
     "background": "#ffffff",
+    "surface": "#F7F9FC",
     "foreground": "#1A1A1A"
   },
   "fonts": {
