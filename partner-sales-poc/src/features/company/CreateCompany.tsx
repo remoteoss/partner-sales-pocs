@@ -33,6 +33,15 @@ interface InitialFormValues {
   desired_currency: string;
 }
 
+interface CompanyResponse {
+  data?: {
+    company?: {
+      id?: string;
+      company_owner_user_id?: string;
+    };
+  };
+}
+
 const fieldClass =
   'w-full h-9 px-3 text-sm rounded-sm border border-input bg-background text-foreground focus:outline-none focus:border-primary';
 const labelClass = 'block text-xs font-semibold uppercase tracking-wide text-secondary mb-1';
@@ -64,8 +73,13 @@ export function CreateCompany() {
     initialValues?.country_code
   );
 
-  const { mutate: createCompany, isPending, isError, error, data: responseData } = useCreateCompany();
+  const { mutate: createCompany, isPending, isError, error, reset: resetCreateCompany } = useCreateCompany();
   const { mutate: generateMagicLink, isPending: isMagicLinkPending } = useMagicLink();
+
+  // Latch the success response locally so the success screen doesn't disappear
+  // if the react-query mutation state changes (remount, refocus refetch, etc.)
+  // before the user clicks the magic link.
+  const [savedResponse, setSavedResponse] = useState<CompanyResponse | null>(null);
 
   const formik = useFormik({
     initialValues: defaultValues,
@@ -104,7 +118,10 @@ export function CreateCompany() {
         terms_of_service_accepted_at: new Date().toISOString(),
       },
       {
-        onSuccess: () => setStep('success'),
+        onSuccess: (data) => {
+          setSavedResponse(data as CompanyResponse);
+          setStep('success');
+        },
       }
     );
   };
@@ -127,10 +144,11 @@ export function CreateCompany() {
     );
   }
 
-  if (isPending) return <Loading message="Creating company..." />;
-
-  if (step === 'success' && responseData) {
-    const company = responseData.data?.company;
+  // Success latches — once we have a saved response, keep showing it until the
+  // user explicitly hits "Create another company". Takes precedence over the
+  // mutation's isPending so a stray re-fire can't wipe the magic-link screen.
+  if (savedResponse) {
+    const company = savedResponse.data?.company;
     const companyOwnerId = company?.company_owner_user_id;
     const companyId = company?.id;
 
@@ -188,6 +206,8 @@ export function CreateCompany() {
               setLockedCounter(null);
               setStep('initial');
               setInitialValues(null);
+              setSavedResponse(null);
+              resetCreateCompany();
             }}
           >
             Create another company
@@ -199,12 +219,14 @@ export function CreateCompany() {
             View raw response
           </summary>
           <pre className="mt-2 p-3 rounded-sm bg-surface border border-border text-[11px] overflow-auto max-h-56">
-            {JSON.stringify(responseData, null, 2)}
+            {JSON.stringify(savedResponse, null, 2)}
           </pre>
         </details>
       </div>
     );
   }
+
+  if (isPending) return <Loading message="Creating company..." />;
 
   if (isError) {
     return (
@@ -214,7 +236,7 @@ export function CreateCompany() {
           <p className="text-xs text-secondary mt-1">{(error as Error)?.message}</p>
         </div>
         <div className="mt-4">
-          <Button variant="outline" onClick={() => setStep('initial')}>Try again</Button>
+          <Button variant="outline" onClick={() => { resetCreateCompany(); setStep('initial'); }}>Try again</Button>
         </div>
       </div>
     );
