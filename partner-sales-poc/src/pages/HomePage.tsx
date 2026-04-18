@@ -1,7 +1,11 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { UserPlus, FileText, Clock, CheckSquare } from 'lucide-react';
+import { UserPlus, FileText, Clock, CheckSquare, ExternalLink, Rocket, Building2 } from 'lucide-react';
+import { useSession, useOnboardEmployee } from '../features/company/hooks';
+import { useDemoActivation } from '../hooks/useDemoActivation';
+import { StartNewHireModal } from '../features/new-hire/StartNewHireModal';
 
 type Hire = {
   name: string;
@@ -24,6 +28,8 @@ const TODO_ITEMS = [
   { label: 'Complete your Things To Do tasks', meta: '2 open' },
 ];
 
+type DemoState = 'discovery' | 'activation' | 'hiring';
+
 function StatusPill({ status }: { status: Hire['status'] }) {
   const styles: Record<Hire['status'], string> = {
     Pending: 'bg-tertiary text-primary border-primary/30',
@@ -38,39 +44,124 @@ function StatusPill({ status }: { status: Hire['status'] }) {
 }
 
 export function HomePage() {
+  const { data: session } = useSession();
+  const { isActivated: demoActivated } = useDemoActivation();
+  const { onboard, isPending: magicLinkPending, error: magicLinkError } = useOnboardEmployee(session?.user_id);
+  const navigate = useNavigate();
+  const [showCountryModal, setShowCountryModal] = useState(false);
+
+  const demoState: DemoState = session?.company_id
+    ? 'hiring'
+    : demoActivated
+    ? 'activation'
+    : 'discovery';
+
+  const handleStartHire = () => {
+    if (demoState === 'hiring') onboard();
+    else if (demoState === 'activation') navigate('/create-company');
+    else setShowCountryModal(true);
+  };
+
+  const handleModalConfirm = () => {
+    setShowCountryModal(false);
+    navigate('/new-hire');
+  };
+
+  const primaryCtaLabel =
+    demoState === 'hiring'
+      ? magicLinkPending
+        ? 'Generating link...'
+        : 'Onboard International Employee'
+      : 'Start New Hire';
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Page title */}
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">HR Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold text-foreground">HR Dashboard</h1>
+            {demoState === 'hiring' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-sm border border-success/30 bg-success/10 text-success">
+                <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                Remote EOR · Active
+              </span>
+            )}
+            {demoState === 'activation' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-sm border border-accent/40 bg-accent/10 text-accent">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                Remote EOR · Ready to register
+              </span>
+            )}
+          </div>
           <p className="text-sm text-secondary">Manage hiring, onboarding, and team changes</p>
         </div>
-        <Link to="/new-hire">
-          <Button variant="accent" size="md">
-            <UserPlus size={14} />
-            Start New Hire
-          </Button>
-        </Link>
+        <Button
+          variant="accent"
+          size="md"
+          onClick={handleStartHire}
+          disabled={demoState === 'hiring' && magicLinkPending}
+        >
+          <UserPlus size={14} />
+          {primaryCtaLabel}
+          {demoState === 'hiring' && !magicLinkPending && <ExternalLink size={12} />}
+        </Button>
       </div>
+
+      {magicLinkError && (
+        <div className="border-l-4 border-error bg-error/5 px-4 py-2 text-xs text-error rounded-sm">
+          Couldn't generate onboarding link — try Reset Demo and create a company again.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main column */}
         <div className="lg:col-span-2 space-y-6">
+          {demoState === 'activation' && (
+            <Card title="Register with Remote" headerAccent>
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-sm bg-accent/10 text-accent">
+                  <Rocket size={18} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">
+                    Register your company to start hiring internationally
+                  </p>
+                  <p className="text-xs text-secondary mt-1 mb-3 leading-relaxed">
+                    ADP has enabled Remote EOR for your Workforce Now account. Complete your
+                    company registration with Remote to start hiring in countries where you
+                    don't have a legal presence.
+                  </p>
+                  <Button variant="accent" size="md" onClick={handleStartHire}>
+                    <Building2 size={14} /> Register your company
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
           <Card title="Start Employee Onboarding" headerAccent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Link
-                to="/new-hire"
-                className="group flex items-start gap-3 p-4 border border-border rounded-sm hover:border-primary hover:bg-tertiary transition-colors"
+              <button
+                type="button"
+                onClick={handleStartHire}
+                disabled={demoState === 'hiring' && magicLinkPending}
+                className="group flex items-start gap-3 p-4 border border-border rounded-sm hover:border-primary hover:bg-tertiary transition-colors text-left disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <div className="p-2 rounded-sm bg-primary/10 text-primary">
                   <UserPlus size={18} />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-foreground">Hire and Onboard Employees</p>
-                  <p className="text-xs text-secondary mt-1">Start a new hire — domestic or international.</p>
+                  <p className="text-xs text-secondary mt-1">
+                    {demoState === 'hiring'
+                      ? 'Send a magic link to start onboarding in Remote.'
+                      : demoState === 'activation'
+                      ? 'Register your company with Remote to start hiring internationally.'
+                      : 'Start a new hire — domestic or international.'}
+                  </p>
                 </div>
-              </Link>
+              </button>
 
               <div className="flex items-start gap-3 p-4 border border-border rounded-sm opacity-70">
                 <div className="p-2 rounded-sm bg-secondary/10 text-secondary">
@@ -128,24 +219,41 @@ export function HomePage() {
             </ul>
           </Card>
 
-          <Card title="Recommended" headerAccent>
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-sm bg-accent/10 text-accent">
-                <Clock size={18} />
+          {demoState !== 'activation' && (
+            <Card title="Recommended" headerAccent>
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-sm bg-accent/10 text-accent">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Hiring internationally?</p>
+                  <p className="text-xs text-secondary mt-1 mb-3">
+                    ADP Global Payroll Solutions + Remote makes it easy to hire outside your entity.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleStartHire}
+                    disabled={demoState === 'hiring' && magicLinkPending}
+                  >
+                    {demoState === 'hiring'
+                      ? magicLinkPending
+                        ? 'Opening...'
+                        : 'Onboard employee'
+                      : 'Learn more'}
+                  </Button>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Hiring internationally?</p>
-                <p className="text-xs text-secondary mt-1 mb-3">
-                  ADP Global Payroll Solutions + Remote makes it easy to hire outside your entity.
-                </p>
-                <Link to="/new-hire">
-                  <Button variant="outline" size="sm">Learn more</Button>
-                </Link>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          )}
         </div>
       </div>
+
+      <StartNewHireModal
+        open={showCountryModal}
+        onCancel={() => setShowCountryModal(false)}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 }

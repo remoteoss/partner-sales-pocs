@@ -199,10 +199,39 @@ async function generateMagicLink(userId: string, path: string, useSessionToken: 
  */
 export function useMagicLink() {
   return useMutation({
-    mutationFn: ({ userId, path, useSessionToken = true }: { 
-      userId: string; 
+    mutationFn: ({ userId, path, useSessionToken = true }: {
+      userId: string;
       path: string;
       useSessionToken?: boolean;
     }) => generateMagicLink(userId, path, useSessionToken),
   });
+}
+
+/**
+ * Hook to onboard an employee via a magic link to Remote's onboarding flow.
+ * Wraps useMagicLink with a user_id guard and window.open on success.
+ */
+export function useOnboardEmployee(userId: string | null | undefined) {
+  const { mutate, isPending, error } = useMagicLink();
+  const onboard = () => {
+    if (!userId) {
+      console.error('useOnboardEmployee: no user_id on session');
+      return;
+    }
+    mutate(
+      {
+        userId,
+        path: '/dashboard/people/add?employmentType=full_time&entityType=remote_entity',
+        useSessionToken: true,
+      },
+      {
+        onSuccess: (d: { data?: { url?: string }; url?: string }) => {
+          const url = d?.data?.url || d?.url;
+          if (url) window.open(url, '_blank');
+          else console.error('useOnboardEmployee: no URL in magic-link response', d);
+        },
+      }
+    );
+  };
+  return { onboard, isPending, error };
 }

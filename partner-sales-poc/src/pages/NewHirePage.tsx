@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Check, Globe2, Shield, TrendingUp, Users, ChevronLeft } from 'lucide-react';
+import { useSession } from '../features/company/hooks';
+import { useDemoActivation } from '../hooks/useDemoActivation';
 
 const REMOTE_BENEFITS = [
   'Remote as a legal employer of record (EOR) for international hires',
@@ -21,16 +23,13 @@ const GLOBAL_PAYROLL_BENEFITS = [
 type Mode = 'choose' | 'confirmed';
 
 export function NewHirePage() {
+  const { data: session } = useSession();
+  const { isActivated: demoActivated } = useDemoActivation();
   const [mode, setMode] = useState<Mode>('choose');
-  const [enabled, setEnabled] = useState(false);
-  const navigate = useNavigate();
+
+  if (session?.company_id || demoActivated) return <Navigate to="/" replace />;
 
   const handleInterested = () => setMode('confirmed');
-
-  const handleContinue = () => {
-    if (!enabled) return;
-    navigate('/create-company');
-  };
 
   if (mode === 'confirmed') {
     return (
@@ -51,48 +50,10 @@ export function NewHirePage() {
               An ADP Global Payroll specialist will reach out to discuss pricing, cost estimates,
               and next steps for adding Remote EOR to your Workforce Now account.
             </p>
-          </div>
-
-          {/* Demo-only toggle */}
-          <div className="border-t border-border -mx-5 px-5 pt-4 mt-4">
-            <div className="bg-tertiary border border-primary/20 rounded-sm px-4 py-3">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-                    Demo mode
-                  </p>
-                  <p className="text-xs text-secondary mt-1">
-                    In production, the sales team provisions access after a cost estimate.
-                    For this demo, flip the toggle to enable Remote and jump straight to
-                    company registration.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={enabled}
-                  onClick={() => setEnabled((v) => !v)}
-                  className={`relative shrink-0 w-10 h-6 rounded-full transition-colors ${
-                    enabled ? 'bg-success' : 'bg-secondary/40'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
-                      enabled ? 'translate-x-4' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-4">
-              <Button
-                variant="accent"
-                onClick={handleContinue}
-                disabled={!enabled}
-              >
-                Continue to company setup
-              </Button>
+            <div className="mt-6">
+              <Link to="/">
+                <Button variant="secondary" size="md">Back to Home</Button>
+              </Link>
             </div>
           </div>
         </Card>

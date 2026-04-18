@@ -1,6 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, RotateCcw, Search, User } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import config from '../../config/partner';
+import { useSession } from '../../features/company/hooks';
+import { useDemoActivation } from '../../hooks/useDemoActivation';
 
 const PRIMARY_NAV = [
   { path: '/', label: 'HOME' },
@@ -10,12 +13,36 @@ const PRIMARY_NAV = [
   { path: '/reports', label: 'REPORTS' },
 ];
 
+type DemoState = 'discovery' | 'activation' | 'hiring';
+
 export function Header() {
   const location = useLocation();
+  const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const { isActivated, activate, deactivate } = useDemoActivation();
+
+  const demoState: DemoState = session?.company_id
+    ? 'hiring'
+    : isActivated
+    ? 'activation'
+    : 'discovery';
 
   const isActiveNav = (path: string) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
+  };
+
+  const gotoDiscovery = async () => {
+    deactivate();
+    await fetch('/api/session', { method: 'DELETE' });
+    await fetch('/api/counter/increment', { method: 'POST' });
+    await queryClient.invalidateQueries({ queryKey: ['session'] });
+    await queryClient.invalidateQueries({ queryKey: ['counter'] });
+  };
+
+  const gotoActivation = async () => {
+    activate();
+    await queryClient.invalidateQueries({ queryKey: ['session'] });
   };
 
   return (
@@ -46,7 +73,21 @@ export function Header() {
             })}
           </nav>
 
-          <div className="flex items-center gap-4 text-white/90 shrink-0">
+          <div className="flex items-center gap-3 text-white/90 shrink-0">
+            <DemoStatePill
+              state={demoState}
+              onDiscovery={gotoDiscovery}
+              onActivation={gotoActivation}
+            />
+            <button
+              type="button"
+              onClick={gotoDiscovery}
+              className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold tracking-wide uppercase border border-white/30 hover:bg-primary-hover hover:border-white/60 rounded-sm transition-colors"
+              title="Clear the activated session and return to Discovery"
+            >
+              <RotateCcw size={12} />
+              Reset Demo
+            </button>
             <button
               type="button"
               aria-label="Search"
@@ -85,6 +126,69 @@ export function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+interface DemoStatePillProps {
+  state: DemoState;
+  onDiscovery: () => void;
+  onActivation: () => void;
+}
+
+function DemoStatePill({ state, onDiscovery, onActivation }: DemoStatePillProps) {
+  const segments: Array<{ key: DemoState; label: string }> = [
+    { key: 'discovery', label: 'Discovery' },
+    { key: 'activation', label: 'Activation' },
+    { key: 'hiring', label: 'Hiring' },
+  ];
+
+  const segmentProps = (key: DemoState): {
+    disabled: boolean;
+    onClick?: () => void;
+    title: string;
+  } => {
+    if (key === state) return { disabled: true, title: 'Current state' };
+    if (key === 'discovery') return { disabled: false, onClick: onDiscovery, title: 'Reset to Discovery' };
+    if (key === 'activation') {
+      if (state === 'hiring') {
+        return { disabled: true, title: 'Click Discovery first to leave Hiring' };
+      }
+      return { disabled: false, onClick: onActivation, title: 'Simulate post-sales activation' };
+    }
+    // key === 'hiring'
+    return { disabled: true, title: 'Register a company to enter Hiring' };
+  };
+
+  return (
+    <div
+      className="flex items-center gap-0.5 p-0.5 rounded-sm border border-white/20 bg-white/5"
+      role="group"
+      aria-label="Demo state"
+    >
+      {segments.map((seg) => {
+        const current = seg.key === state;
+        const { disabled, onClick, title } = segmentProps(seg.key);
+        return (
+          <button
+            key={seg.key}
+            type="button"
+            onClick={onClick}
+            disabled={disabled && !current}
+            aria-pressed={current}
+            title={title}
+            className={`px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase rounded-[3px] transition-colors ${
+              current
+                ? 'bg-white/25 text-white'
+                : disabled
+                ? 'text-white/40 cursor-not-allowed'
+                : 'text-white/70 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            {seg.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

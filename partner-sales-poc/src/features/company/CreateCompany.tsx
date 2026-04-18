@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Loading } from '../../components/ui/Loading';
 import { JsonSchemaForm } from '../../components/form/JsonSchemaForm';
 import { companyValidationSchema } from './fields';
-import { useCreateCompany, useCompanyJsonSchema, useCountries, useMagicLink } from './hooks';
+import { useCreateCompany, useCompanyJsonSchema, useCountries, useOnboardEmployee } from './hooks';
 import { useCounter, getDefaultCompanyValues } from '../../hooks/useCounter';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -52,6 +52,7 @@ export function CreateCompany() {
   const [initialValues, setInitialValues] = useState<InitialFormValues | null>(null);
   const [countrySearch, setCountrySearch] = useState('');
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const { counter, isLoading: counterLoading } = useCounter();
   const queryClient = useQueryClient();
@@ -74,7 +75,6 @@ export function CreateCompany() {
   );
 
   const { mutate: createCompany, isPending, isError, error, reset: resetCreateCompany } = useCreateCompany();
-  const { mutate: generateMagicLink, isPending: isMagicLinkPending } = useMagicLink();
 
   // Latch the success response locally so the success screen doesn't disappear
   // if the react-query mutation state changes (remount, refocus refetch, etc.)
@@ -121,6 +121,7 @@ export function CreateCompany() {
         onSuccess: (data) => {
           setSavedResponse(data as CompanyResponse);
           setStep('success');
+          queryClient.invalidateQueries({ queryKey: ['session'] });
         },
       }
     );
@@ -148,81 +149,18 @@ export function CreateCompany() {
   // user explicitly hits "Create another company". Takes precedence over the
   // mutation's isPending so a stray re-fire can't wipe the magic-link screen.
   if (savedResponse) {
-    const company = savedResponse.data?.company;
-    const companyOwnerId = company?.company_owner_user_id;
-    const companyId = company?.id;
-
-    const handleMagicLinkClick = () => {
-      if (!companyOwnerId) {
-        console.error('No company owner user ID found');
-        return;
-      }
-      generateMagicLink(
-        { userId: companyOwnerId, path: '/dashboard/people/add?employmentType=full_time', useSessionToken: true },
-        {
-          onSuccess: (data) => {
-            const magicLinkUrl = data?.data?.url || data?.url;
-            if (magicLinkUrl) {
-              window.open(magicLinkUrl, '_blank');
-            } else {
-              console.error('No magic link URL in response:', data);
-            }
-          },
-          onError: (err) => console.error('Failed to generate magic link:', err),
-        }
-      );
-    };
-
     return (
-      <div>
-        <div className="flex items-start gap-4 border-l-4 border-success bg-success/5 px-4 py-3 rounded-sm">
-          <div className="w-8 h-8 rounded-full bg-success text-white flex items-center justify-center shrink-0">
-            <Check size={16} strokeWidth={3} />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-foreground">Company created successfully</p>
-            <p className="text-xs text-secondary mt-0.5">
-              Company ID: <span className="font-mono text-foreground">{companyId}</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5 space-y-3">
-          <Button
-            className="w-full"
-            variant="accent"
-            onClick={handleMagicLinkClick}
-            disabled={isMagicLinkPending || !companyOwnerId}
-          >
-            {isMagicLinkPending ? 'Generating link...' : 'Continue to create a new EOR employee in Remote'}
-            {!isMagicLinkPending && <ExternalLink size={14} />}
-          </Button>
-
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={async () => {
-              await queryClient.invalidateQueries({ queryKey: ['counter'] });
-              setLockedCounter(null);
-              setStep('initial');
-              setInitialValues(null);
-              setSavedResponse(null);
-              resetCreateCompany();
-            }}
-          >
-            Create another company
-          </Button>
-        </div>
-
-        <details className="mt-5 text-xs">
-          <summary className="cursor-pointer text-secondary hover:text-foreground">
-            View raw response
-          </summary>
-          <pre className="mt-2 p-3 rounded-sm bg-surface border border-border text-[11px] overflow-auto max-h-56">
-            {JSON.stringify(savedResponse, null, 2)}
-          </pre>
-        </details>
-      </div>
+      <SavedResponseView
+        savedResponse={savedResponse}
+        onCreateAnother={async () => {
+          await queryClient.invalidateQueries({ queryKey: ['counter'] });
+          setLockedCounter(null);
+          setStep('initial');
+          setInitialValues(null);
+          setSavedResponse(null);
+          resetCreateCompany();
+        }}
+      />
     );
   }
 
@@ -420,22 +358,94 @@ export function CreateCompany() {
       </div>
 
       <div className="pt-4 border-t border-border">
-        <p className="text-[11px] text-secondary mb-3">
-          By creating a company, you agree to{' '}
-          <a
-            href="https://remote.com/terms-of-service"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            Remote's Terms of Service
-          </a>
-          .
-        </p>
+        <label className="flex items-start gap-2 text-xs text-secondary mb-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-0.5 accent-primary"
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
+          />
+          <span>
+            I agree to Remote's{' '}
+            <a
+              href="https://remote.com/policy/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              Privacy Policy
+            </a>{' '}
+            and{' '}
+            <a
+              href="https://remote.com/policy/terms-of-use"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              Terms of Use
+            </a>
+            .
+          </span>
+        </label>
         <div className="flex justify-end">
-          <Button type="submit" variant="accent">Continue to address details</Button>
+          <Button type="submit" variant="accent" disabled={!termsAccepted}>
+            Continue to address details
+          </Button>
         </div>
       </div>
     </form>
+  );
+}
+
+interface SavedResponseViewProps {
+  savedResponse: CompanyResponse;
+  onCreateAnother: () => void;
+}
+
+function SavedResponseView({ savedResponse, onCreateAnother }: SavedResponseViewProps) {
+  const company = savedResponse.data?.company;
+  const companyOwnerId = company?.company_owner_user_id;
+  const companyId = company?.id;
+  const { onboard, isPending: isMagicLinkPending } = useOnboardEmployee(companyOwnerId);
+
+  return (
+    <div>
+      <div className="flex items-start gap-4 border-l-4 border-success bg-success/5 px-4 py-3 rounded-sm">
+        <div className="w-8 h-8 rounded-full bg-success text-white flex items-center justify-center shrink-0">
+          <Check size={16} strokeWidth={3} />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-foreground">Company created successfully</p>
+          <p className="text-xs text-secondary mt-0.5">
+            Company ID: <span className="font-mono text-foreground">{companyId}</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 space-y-3">
+        <Button
+          className="w-full"
+          variant="accent"
+          onClick={onboard}
+          disabled={isMagicLinkPending || !companyOwnerId}
+        >
+          {isMagicLinkPending ? 'Generating link...' : 'Continue to create a new EOR employee in Remote'}
+          {!isMagicLinkPending && <ExternalLink size={14} />}
+        </Button>
+
+        <Button variant="secondary" className="w-full" onClick={onCreateAnother}>
+          Create another company
+        </Button>
+      </div>
+
+      <details className="mt-5 text-xs">
+        <summary className="cursor-pointer text-secondary hover:text-foreground">
+          View raw response
+        </summary>
+        <pre className="mt-2 p-3 rounded-sm bg-surface border border-border text-[11px] overflow-auto max-h-56">
+          {JSON.stringify(savedResponse, null, 2)}
+        </pre>
+      </details>
+    </div>
   );
 }
