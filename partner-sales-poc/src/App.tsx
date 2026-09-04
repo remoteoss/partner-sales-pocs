@@ -1,16 +1,12 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from './components/layout/Layout';
 import { HomePage } from './pages/HomePage';
 import { NewHirePage } from './pages/NewHirePage';
 import { CreateCompanyPage } from './pages/CreateCompanyPage';
-import { GlobalPayrollAdminPage } from './pages/GlobalPayrollAdminPage';
-import { GlobalPayrollEmployeePage } from './pages/GlobalPayrollEmployeePage';
-import { GlobalPayrollPayRunsPage } from './pages/GlobalPayrollPayRunsPage';
+import { HirePage } from './pages/HirePage';
 import config from './config/partner';
-
-const isHiBob = config.chrome === 'hibob';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,15 +49,10 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route
-              index
-              element={isHiBob ? <Navigate to="/gp/admin" replace /> : <HomePage />}
-            />
+            <Route index element={<HomePage />} />
             <Route path="new-hire" element={<NewHirePage />} />
             <Route path="create-company" element={<CreateCompanyPage />} />
-            <Route path="gp/admin" element={<GlobalPayrollAdminPage />} />
-            <Route path="gp/pay-runs" element={<GlobalPayrollPayRunsPage />} />
-            <Route path="gp/employee" element={<GlobalPayrollEmployeePage />} />
+            <Route path="hire" element={<HirePage />} />
           </Route>
         </Routes>
       </Router>

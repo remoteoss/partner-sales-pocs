@@ -20,14 +20,6 @@ interface Session {
   country_code: string | null;
 }
 
-const STEPS = [
-  'Select Country',
-  'Basic Information',
-  'Contract Details',
-  'Benefits',
-  'Review & Invite',
-];
-
 // Alert component for errors
 function AlertError({ errors }: { errors: { apiError: string; fieldErrors: NormalizedFieldError[] } }) {
   if (!errors.apiError && errors.fieldErrors.length === 0) return null;
@@ -216,7 +208,7 @@ function ReviewStepContent({
             
             <div className="flex gap-2 mt-6">
               <BackButton 
-                className="px-4 py-2 border rounded-lg"
+                className="px-4 py-2 border border-border rounded-lg"
                 disabled={onboardingBag.isEmploymentReadOnly}
               >
                 Previous Step
@@ -263,6 +255,8 @@ function MultiStepForm({ onboardingBag, components }: {
     SubmitButton,
     BackButton,
     SelectCountryStep,
+    EngagementAgreementDetailsStep,
+    PreviewEmploymentAgreementStep,
   } = components;
 
   const [errors, setErrors] = useState<{
@@ -286,7 +280,7 @@ function MultiStepForm({ onboardingBag, components }: {
           />
           <AlertError errors={errors} />
           <div className="flex gap-2 mt-6">
-            <SubmitButton className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: config.colors.primary }}>
+            <SubmitButton className="px-4 py-2 rounded-lg text-white bg-primary hover:bg-primary-hover">
               Continue
             </SubmitButton>
           </div>
@@ -306,14 +300,13 @@ function MultiStepForm({ onboardingBag, components }: {
           <AlertError errors={errors} />
           <div className="flex gap-2 mt-6">
             <BackButton 
-              className="px-4 py-2 border rounded-lg"
+              className="px-4 py-2 border border-border rounded-lg"
               onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
             >
               Previous Step
             </BackButton>
             <SubmitButton 
-              className="px-4 py-2 rounded-lg text-white"
-              style={{ backgroundColor: config.colors.primary }}
+              className="px-4 py-2 rounded-lg text-white bg-primary hover:bg-primary-hover"
               onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
             >
               Create Employment & Continue
@@ -335,14 +328,13 @@ function MultiStepForm({ onboardingBag, components }: {
           <AlertError errors={errors} />
           <div className="flex gap-2 mt-6">
             <BackButton 
-              className="px-4 py-2 border rounded-lg"
+              className="px-4 py-2 border border-border rounded-lg"
               onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
             >
               Previous Step
             </BackButton>
             <SubmitButton 
-              className="px-4 py-2 rounded-lg text-white"
-              style={{ backgroundColor: config.colors.primary }}
+              className="px-4 py-2 rounded-lg text-white bg-primary hover:bg-primary-hover"
               onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
             >
               Continue
@@ -364,14 +356,66 @@ function MultiStepForm({ onboardingBag, components }: {
           <AlertError errors={errors} />
           <div className="flex gap-2 mt-6">
             <BackButton 
-              className="px-4 py-2 border rounded-lg"
+              className="px-4 py-2 border border-border rounded-lg"
               onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
             >
               Previous Step
             </BackButton>
             <SubmitButton 
-              className="px-4 py-2 rounded-lg text-white"
-              style={{ backgroundColor: config.colors.primary }}
+              className="px-4 py-2 rounded-lg text-white bg-primary hover:bg-primary-hover"
+              onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
+            >
+              Continue
+            </SubmitButton>
+          </div>
+        </>
+      );
+
+    // Conditional steps. The SDK only includes these when the company/country
+    // and feature flags call for them, but when it does and we have no case,
+    // the default branch below renders a debug string into the page — which is
+    // exactly what happened before these were added.
+    case 'engagement_agreement_details':
+      return (
+        <>
+          <EngagementAgreementDetailsStep
+            onSuccess={(data) => console.log('Engagement agreement details saved:', data)}
+            onError={({ error, fieldErrors }) =>
+              setErrors({ apiError: error.message, fieldErrors })
+            }
+          />
+          <AlertError errors={errors} />
+          <div className="flex gap-2 mt-6">
+            <BackButton
+              className="px-4 py-2 border border-border rounded-lg"
+              onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
+            >
+              Previous Step
+            </BackButton>
+            <SubmitButton
+              className="px-4 py-2 rounded-lg text-white bg-primary hover:bg-primary-hover"
+              onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
+            >
+              Continue
+            </SubmitButton>
+          </div>
+        </>
+      );
+
+    case 'employment_agreement_preview':
+      return (
+        <>
+          <PreviewEmploymentAgreementStep />
+          <AlertError errors={errors} />
+          <div className="flex gap-2 mt-6">
+            <BackButton
+              className="px-4 py-2 border border-border rounded-lg"
+              onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
+            >
+              Previous Step
+            </BackButton>
+            <SubmitButton
+              className="px-4 py-2 rounded-lg text-white bg-primary hover:bg-primary-hover"
               onClick={() => setErrors({ apiError: '', fieldErrors: [] })}
             >
               Continue
@@ -382,7 +426,7 @@ function MultiStepForm({ onboardingBag, components }: {
 
     case 'review':
       return (
-        <ReviewStepContent 
+        <ReviewStepContent
           onboardingBag={onboardingBag}
           components={components}
           errors={errors}
@@ -391,7 +435,18 @@ function MultiStepForm({ onboardingBag, components }: {
       );
 
     default:
-      return <p>Unknown step: {onboardingBag.stepState.currentStep.name}</p>;
+      // Should be unreachable. If the SDK adds a step we do not render, fail
+      // visibly here rather than putting a raw step name in front of an
+      // audience — the rail above will still show where we are.
+      console.error(
+        '[OnboardingSDK] No renderer for step:',
+        onboardingBag.stepState.currentStep.name,
+      );
+      return (
+        <p className="text-sm text-secondary">
+          This step isn’t available in this view yet.
+        </p>
+      );
   }
 }
 
@@ -401,37 +456,43 @@ function OnboardingRender({ onboardingBag, components }: OnboardingRenderProps) 
     return <Loading message="Loading onboarding form..." />;
   }
 
-  const currentStepIndex = onboardingBag.stepState.currentStep.index;
-  const stepTitle = STEPS[currentStepIndex] || 'Onboarding';
+  // The step set is built by the SDK at runtime (buildSteps), not by us. Which
+  // steps exist depends on the company, the country, and feature flags —
+  // `engagement_agreement_details` and `employment_agreement_preview` appear
+  // only for some. So read the rail off `onboardingBag.steps` rather than a
+  // local list: a hardcoded array silently mislabels forms the moment the SDK
+  // adds, removes, or reorders a step, and this app links the SDK by path
+  // (file:../remote-flows), so it moves under us without a version bump.
+  const visibleSteps = onboardingBag.steps.filter((s) => s.visible);
+  const currentName = onboardingBag.stepState.currentStep.name;
+  const currentPosition = visibleSteps.findIndex((s) => s.name === currentName);
+  const stepTitle =
+    visibleSteps.find((s) => s.name === currentName)?.label ?? 'Onboarding';
 
   return (
     <>
-      {/* Step navigation */}
+      {/* Step rail */}
       <div className="mb-6">
-        <ul className="flex flex-wrap gap-2">
-          {STEPS.map((step, index) => (
-            <li
-              key={index}
-              className={`px-3 py-1 rounded-full text-xs ${
-                index === currentStepIndex 
-                  ? 'text-white' 
-                  : index < currentStepIndex 
-                    ? 'text-green-600 bg-green-100'
-                    : 'text-gray-500 bg-gray-100'
-              }`}
-              style={index === currentStepIndex ? { backgroundColor: config.colors.primary } : {}}
-            >
-              {index + 1}. {step}
-            </li>
-          ))}
-        </ul>
+        <ol className="flex flex-wrap gap-2">
+          {visibleSteps.map((step, index) => {
+            const state =
+              index === currentPosition
+                ? 'bg-primary text-white'
+                : index < currentPosition
+                  ? 'bg-success/10 text-success'
+                  : 'bg-surface text-secondary';
+            return (
+              <li key={step.name} className={`px-3 py-1 rounded-full text-xs ${state}`}>
+                {index + 1}. {step.label}
+              </li>
+            );
+          })}
+        </ol>
       </div>
 
       {/* Current step content */}
-      <div className="p-4 rounded-lg border" style={{ borderColor: config.colors.borders }}>
-        <h2 className="text-lg font-semibold mb-4" style={{ color: config.colors.foreground }}>
-          {stepTitle}
-        </h2>
+      <div className="p-4 rounded-lg border border-border">
+        <h2 className="text-lg font-semibold mb-4 text-foreground">{stepTitle}</h2>
         <MultiStepForm onboardingBag={onboardingBag} components={components} />
       </div>
     </>

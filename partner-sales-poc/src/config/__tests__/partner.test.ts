@@ -42,6 +42,14 @@ describe('loadPartnerConfig', () => {
     expect(c.productName).toBe('People Cloud');
   });
 
+  it('profile=hibob → loads HiBob config with hibob chrome and coral primary', () => {
+    const c = loadPartnerConfig('hibob');
+    expect(c.company.name).toBe('HiBob');
+    expect(c.chrome).toBe('hibob');
+    expect(c.colors.primary).toBe('#FF4E64');
+    expect(c.productName).toBe('Bob');
+  });
+
   it('unset / unknown profile → defaults to Intuit', () => {
     expect(loadPartnerConfig(undefined).company.name).toBe('Intuit');
     expect(loadPartnerConfig('').company.name).toBe('Intuit');
@@ -52,7 +60,7 @@ describe('loadPartnerConfig', () => {
     const c = loadPartnerConfig('intuit');
     expect(typeof c.productName).toBe('string');
     expect(typeof c.legalEntity).toBe('string');
-    expect(['wfn', 'quickbooks', 'isolved']).toContain(c.chrome);
+    expect(['wfn', 'quickbooks', 'isolved', 'hibob']).toContain(c.chrome);
   });
 
   it('all profiles include all required color keys', () => {

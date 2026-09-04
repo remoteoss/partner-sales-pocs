@@ -7,27 +7,31 @@ const PARTNER_ENDPOINTS = [
   '/v1/countries',
 ];
 
-// Endpoints that can use session token (newly created company)
-const SESSION_TOKEN_ENDPOINTS = [
-  '/v1/magic-link',
-];
-
 /**
  * Determine auth type for an endpoint
  * Returns: 'partner' | 'session' | 'customer'
+ *
+ * Order matters. Partner endpoints win outright: /v1/companies and
+ * /v1/countries are called before any customer context exists, so a session
+ * token is meaningless there even when the caller asks for one.
+ *
+ * Everything else honours the X-Use-Session-Token header. This is what keeps
+ * the demo honest: once a company has been created live, the session token
+ * points at THAT company, and every employment call must use it. Falling back
+ * to the .env customer token would create the employment under a different
+ * company with no error — the hire simply would not be where the demo says it
+ * is. The remote-flows SDK sets this header at mount time (see
+ * RemoteFlowsWrapper.tsx) because its proxy headers are static.
  */
-function getAuthType(path, useSessionToken) {
-  // Check if endpoint supports session token and session is available
-  if (useSessionToken && SESSION_TOKEN_ENDPOINTS.some(endpoint => path.startsWith(endpoint))) {
-    return 'session';
-  }
-  
-  // Partner endpoints
+export function getAuthType(path, useSessionToken) {
   if (PARTNER_ENDPOINTS.some(endpoint => path.startsWith(endpoint))) {
     return 'partner';
   }
-  
-  // Default to customer token
+
+  if (useSessionToken) {
+    return 'session';
+  }
+
   return 'customer';
 }
 
@@ -63,9 +67,14 @@ export function createProxyMiddleware() {
         }
       } catch (tokenError) {
         console.error(`[Proxy] Failed to get ${authType} token:`, tokenError.message);
-        // Fallback to customer token for session failures
+        // Fallback to customer token for session failures.
+        // WARNING: the customer token belongs to a DIFFERENT company than the
+        // session one. If this fires during an employment flow, the hire lands
+        // in the .env company, not the one created on stage. With no
+        // VITE_REFRESH_TOKEN in .env.hibob-local (the intended local setup)
+        // this fallback fails loudly instead, which is the safer outcome.
         if (authType === 'session') {
-          console.log('[Proxy] Falling back to customer token');
+          console.warn('[Proxy] Session token failed — falling back to the .env customer token (DIFFERENT COMPANY)');
           const result = await fetchCustomerToken();
           accessToken = result.accessToken;
         } else {

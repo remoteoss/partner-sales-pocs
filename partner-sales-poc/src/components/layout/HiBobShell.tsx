@@ -1,4 +1,4 @@
-import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import {
   Home,
   Users,
@@ -6,18 +6,19 @@ import {
   Wallet,
   FileText,
   Settings,
-  Receipt,
-  ListTodo,
+  Globe,
   Bell,
   Search,
 } from 'lucide-react';
 import config from '../../config/partner';
 
-// One HiBob shell, two personas. The persona is derived from the route:
-//   /gp/employee*  → employee self-service view (Home / Time off / Expenses / Tasks)
-//   everything else → admin view (People / Payroll / Global Payroll / Reports)
-// The top-bar toggle flips between the two — that's the demo's "employer view"
-// vs "employee view" switch. Both are visually HiBob; the SDK mounts inside.
+// The partner shell. One persona only: an employer admin.
+//
+// Unlike the Global Payroll demo, there is no employee view here. An EOR hire
+// completes their onboarding on Remote, with Remote branding — that is
+// deliberate product behaviour, not a gap. The employer is the only persona
+// that stays inside this chrome, and the only one whose jump to Remote is
+// co-branded.
 
 type NavItem = {
   label: string;
@@ -28,62 +29,33 @@ type NavItem = {
   subtext?: string;
 };
 
-const ADMIN_NAV = (pathname: string): NavItem[] => [
-  { label: 'Home', icon: Home },
+const NAV = (pathname: string): NavItem[] => [
+  { label: 'Home', icon: Home, to: '/', active: pathname === '/' },
   { label: 'People', icon: Users },
   { label: 'Time & Attendance', icon: CalendarClock },
   {
-    label: 'Global Payroll',
-    icon: Wallet,
-    to: '/gp/admin',
-    active: pathname.startsWith('/gp/admin'),
+    label: 'Global Hiring',
+    icon: Globe,
+    to: '/hire',
+    active: pathname.startsWith('/hire'),
     subtext: 'Powered by Remote',
   },
-  {
-    label: 'Pay runs',
-    icon: Receipt,
-    to: '/gp/pay-runs',
-    active: pathname.startsWith('/gp/pay-runs'),
-    indent: true,
-  },
+  { label: 'Payroll', icon: Wallet },
   { label: 'Documents', icon: FileText },
   { label: 'Settings', icon: Settings },
 ];
 
-const EMPLOYEE_NAV = (pathname: string): NavItem[] => [
-  { label: 'Home', icon: Home },
-  {
-    label: 'Tasks',
-    icon: ListTodo,
-    to: '/gp/employee',
-    active: pathname.startsWith('/gp/employee'),
-  },
-  { label: 'Time off', icon: CalendarClock },
-  { label: 'Expenses', icon: Receipt },
-  { label: 'Documents', icon: FileText },
-];
-
 export function HiBobShell() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const isEmployee = location.pathname.startsWith('/gp/employee');
-  const nav = isEmployee
-    ? EMPLOYEE_NAV(location.pathname)
-    : ADMIN_NAV(location.pathname);
-
-  // The signed-in person differs by persona: an employer admin vs the new hire.
-  const person = isEmployee
-    ? { name: 'Jordan Lee', role: 'New hire', initials: 'JL' }
-    : { name: 'Alex Morgan', role: 'Payroll admin', initials: 'AM' };
-  const togglePersona = () =>
-    navigate(isEmployee ? '/gp/admin' : '/gp/employee');
+  const nav = NAV(location.pathname);
+  const person = { name: 'Alex Morgan', role: 'People Ops admin', initials: 'AM' };
 
   return (
     <div className="flex min-h-screen bg-surface font-sans text-foreground">
       {/* Left sidebar */}
       <aside className="w-64 shrink-0 bg-background border-r border-border flex flex-col">
         <Link
-          to={isEmployee ? '/gp/employee' : '/gp/admin'}
+          to="/"
           className="h-16 flex items-center px-5 border-b border-border hover:bg-surface transition-colors"
         >
           <img src={config.logo.src} alt={config.logo.alt} className="h-7" />
@@ -157,25 +129,6 @@ export function HiBobShell() {
             <span className="text-sm">Search</span>
           </div>
           <div className="flex items-center gap-4">
-            {/* Persona toggle — the "employer vs employee" demo switch */}
-            <div className="flex items-center rounded-full bg-surface border border-border p-0.5 text-xs font-semibold">
-              <button
-                onClick={() => !isEmployee || togglePersona()}
-                className={`px-3 py-1.5 rounded-full transition-colors ${
-                  !isEmployee ? 'bg-primary text-white' : 'text-secondary hover:text-foreground'
-                }`}
-              >
-                Admin
-              </button>
-              <button
-                onClick={() => isEmployee || togglePersona()}
-                className={`px-3 py-1.5 rounded-full transition-colors ${
-                  isEmployee ? 'bg-primary text-white' : 'text-secondary hover:text-foreground'
-                }`}
-              >
-                Employee
-              </button>
-            </div>
             <button className="relative text-secondary hover:text-foreground transition-colors">
               <Bell size={18} />
               <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
