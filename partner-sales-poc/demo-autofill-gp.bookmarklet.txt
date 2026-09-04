@@ -1,0 +1,442 @@
+javascript:void((() => {
+  
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const vis = el => { if (!el) return false; const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 1 && r.height > 1 && s.display !== 'none' && s.visibility !== 'hidden' && s.opacity !== '0'; };
+  const norm = s => (s || '').replace(/\*/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+  const FIRST = ['Alex','Priya','Diego','Chen','Aisha','Sam','Yuki','Liam','Zara','Mateo','Anika','Kai','Lina','Theo','Maya','Omar','Iris','Noor','Elena','Felix'];
+  const LAST = ['Smith','Patel','Garcia','Lee','Okonkwo','Nakamura','Dubois','Silva','Anderson','Khan','Muller','Rossi','Reyes','Singh','Cohen','Walsh','Tanaka','Mendez','Park','Novak'];
+  const TITLES = ['Software Engineer','Product Designer','Data Analyst','Operations Specialist','Marketing Manager','Account Executive','QA Engineer','Technical Writer'];
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const person = (() => { const f = pick(FIRST), l = pick(LAST); return { first: f, last: l, full: `${f} ${l}`, slug: (f + l).toLowerCase() }; })();
+
+  
+  
+  
+  let SERVER_NUM = null;
+  const demoEmail = sfx => `mohit.mahindroo+server_${SERVER_NUM == null ? 'na' : SERVER_NUM}${sfx || ''}@remote.com`;
+
+  
+  const future = (() => { const d = new Date(); d.setDate(d.getDate() + 40); return d; })();
+  const mmddyyyy = d => `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+
+  
+  
+  const BY_FIELD = {
+    name: person.full,
+    given_name: person.first,
+    surname: person.last,
+    middle_name: '',
+    name_prefix: '',
+    name_suffix: '',
+    preferred_name: person.first,
+    preferred_pronouns: 'They/them',
+    job_title: pick(TITLES),
+    external_employment_id: 'EMP-' + Math.floor(1000 + Math.random() * 9000),
+    has_seniority_date: 'no',
+    provisional_start_date: '__DATE__',
+    start_date: '__DATE__',
+    
+    contract_duration_type: 'indefinite',
+    work_schedule: 'full_time',
+    wage_type: 'salary',
+    'work_address.is_home_address': 'yes',
+    work_address_is_home_address: 'yes',
+    non_compete_clause_apply: 'no',
+    'equity_compensation.offer_equity_compensation': 'no',
+    
+    daily_working_hours: '8',
+    work_hours_per_week: '40',
+    work_hours_per_month: '160',
+    probation_length: '3',
+    available_pto: '20',
+    additional_special_leave_days_per_year: '0',
+    annual_gross_salary: '65000',
+    role_description: 'Responsible for delivering core team objectives and the day-to-day execution of assigned work, in line with company practices and the contract terms.',
+    
+    total_health_insurance_contribution: '14.6',
+    kv_ag_subsidy: '0',
+    pv_ag_subsidy: '0',
+    tax_number: '12345678901',
+    factor: '0.9',
+    place_of_employment: 'Berlin',
+    number_of_dependents: '0',
+    increased_personal_pension_contribution: '0',
+    
+    deductions: '0',
+    dependents_amount: '0',
+    extra_withholding: '0',
+    other_income: '0',
+    
+    
+    has_ssn: 'yes',
+    ssn: '65170839J003',
+    
+    'capital_forming_benefit_details.has_capital_forming_benefit': 'No',
+    
+    'ssn_details.maiden_name': 'Muller',
+    'ssn_details.preferred_insurance_company': 'Techniker Krankenkasse',
+    'capital_forming_benefit_details.capital_forming_receiver_name': 'Sparkasse Bank',
+    'capital_forming_benefit_details.capital_forming_amount': '40',
+    'capital_forming_benefit_details.capital_forming_employer_share': '40',
+    'capital_forming_benefit_details.capital_forming_contract': '123456',
+  };
+
+  
+  
+  function heuristicText(key) {
+    const k = key.toLowerCase();
+    const m = [
+      [/iban/, 'DE89370400440532013000'],
+      [/\b(bic|swift)\b/, 'DEUTDEFF'],
+      [/sort code/, '123456'],
+      [/routing/, '021000021'],
+      [/account number|account no/, '12345678'],
+      [/\bssn\b|social security/, '123-45-6789'],
+      [/steuer|tax id|tax identification|\btin\b/, '12345678901'],
+      [/sozial|social insurance|insurance number|national insurance|\bnino\b/, '65170839J'],
+      [/health insurance number|versichertennummer/, 'A123456780'],
+      [/salary|compensation|gross|annual|wage|income/, '65000'],
+      [/hours/, '40'],
+      [/\bdays\b|vacation|leave|holiday/, '20'],
+      [/phone|mobile|\btel\b/, '5551234567'],
+      [/postal|zip|post code/, '10115'],
+      [/\bcity\b|town/, 'Berlin'],
+      [/street|address line 1|address$/, 'Alexanderplatz 1'],
+      [/house number|building/, '1'],
+      [/\bstate\b|province|region/, ''],
+      [/first name/, person.first],
+      [/last name|surname|family name/, person.last],
+      [/\bemail\b/, demoEmail('')],
+      [/date/, '__DATE__'],
+    ];
+    for (const [re, v] of m) if (re.test(k)) return v;
+    return 'N/A';
+  }
+
+  
+  
+  const DEMO_COUNTRY = (() => {
+    const h = document.body.innerHTML;
+    
+    if (/Steuerklasse|Kirchensteuer|KV AG|Sozialvers|tax_class|federal_state|religious_community/i.test(h)) return 'Germany';
+    
+    try {
+      const hd = JSON.parse(localStorage.getItem('hibob-gp-employment') || 'null');
+      if (hd) {
+        if (hd.countryCode === 'DEU' || /germany/i.test(hd.name || '')) return 'Germany';
+        if (hd.countryCode === 'USA' || /united states/i.test(hd.name || '')) return 'United States';
+      }
+    } catch { }
+    
+    if (/federal_taxes|state_taxes|filing status|routing number/i.test(h)) return 'United States';
+    return 'Germany';
+  })();
+  const isCountryField = (field, label) => /citizenship|country[_ ]?of[_ ]?birth|nationality|birth[_ ]?country|^country_|(^|[^a-z])country([^a-z]|$)/i.test((field || '') + ' ' + (label || ''));
+  function wantForChoice(field, label) {
+    if (field && field in BY_FIELD) return BY_FIELD[field];
+    if (isCountryField(field, label)) return DEMO_COUNTRY;
+    return null;
+  }
+
+  function resolveText(field, label) {
+    
+    if (field === 'email' || /personal email/i.test(label || '')) return demoEmail('');
+    
+    if (field === 'ssn') return DEMO_COUNTRY === 'United States' ? '123-45-6789' : '65170839J003';
+    if (field && field in BY_FIELD) return BY_FIELD[field];
+    const byLabel = Object.entries(BY_FIELD).find(([k]) => norm(label) === norm(k));
+    if (byLabel) return byLabel[1];
+    return heuristicText(field !== '-' ? field + ' ' + label : label);
+  }
+
+  
+  function setNativeValue(el, val) {
+    const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+    try { el.focus({ preventScroll: true }); } catch { }
+    setter.call(el, val);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    el.dispatchEvent(new Event('blur', { bubbles: true }));
+  }
+
+  function fillNativeSelect(sel, wantText) {
+    if (sel.value && sel.value.trim()) return { status: 'skipped', v: sel.value };
+    const opts = [...sel.options].filter(o => o.value && o.value.trim());
+    let opt = null;
+    if (wantText) {
+      const w = norm(wantText);
+      opt = opts.find(o => norm(o.textContent) === w) || opts.find(o => norm(o.textContent).includes(w));
+      if (!opt && /^no$/.test(w)) opt = opts.find(o => /\b(no|not|none|do not|don't|without)\b/i.test(o.textContent));
+    }
+    if (!opt) opt = opts[0];
+    if (!opt) return { status: 'failed' };
+    const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
+    setter.call(sel, opt.value);
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    return { status: 'filled', v: opt.textContent.trim() };
+  }
+
+  function fillRadio(item, want) {
+    const radios = [...item.querySelectorAll('button[role=radio]')].filter(vis);
+    if (radios.some(r => r.getAttribute('aria-checked') === 'true' || r.getAttribute('data-state') === 'checked'))
+      return { status: 'skipped' };
+    let target = null;
+    if (want) target = radios.find(r => norm(r.getAttribute('value')) === norm(want)) || radios.find(r => norm(r.textContent).includes(norm(want)));
+    if (!target) {
+      const no = radios.find(r => /^no$/i.test((r.getAttribute('value') || r.textContent).trim()));
+      target = no || radios[0];
+    }
+    if (!target) return { status: 'failed' };
+    target.click();
+    return { status: 'filled', v: target.getAttribute('value') || target.textContent.trim() };
+  }
+
+  async function fillSelectDropdown(item, want, force) {
+    const trig = item.querySelector('button[role=combobox],[data-slot="select-trigger"],[aria-haspopup=listbox],[aria-haspopup=menu]');
+    if (!trig) return { status: 'failed' };
+    const cur = (trig.textContent || '').trim();
+    if (!force && cur && !/select|choose|^-$|please/i.test(cur)) return { status: 'skipped', v: cur };
+    trig.click();
+    let opts = [];
+    for (let i = 0; i < 40; i++) { opts = [...document.querySelectorAll('[role=option]')].filter(vis); if (opts.length) break; await sleep(25); }
+    if (!opts.length) { document.body.click(); return { status: 'failed' }; }
+    let opt = null;
+    if (want) { const w = norm(want); opt = opts.find(o => norm(o.textContent) === w) || opts.find(o => norm(o.textContent).includes(w)); }
+    if (!opt) opt = opts[0];
+    opt.click();
+    await sleep(120);
+    return { status: 'filled', v: opt.textContent.trim() };
+  }
+
+  async function fillPhone(item) {
+    
+    
+    
+    
+    const dialTrig = item.querySelector('[data-slot="select-trigger"],button[role=combobox]');
+    const dialCur = (dialTrig?.textContent || '').trim();
+    let code = { v: dialCur };
+    if (!norm(dialCur).includes(norm(DEMO_COUNTRY))) code = await fillSelectDropdown(item, DEMO_COUNTRY, true);
+    await sleep(150);
+    const inp = item.querySelector('input[type=text],input[type=tel],input:not([type])');
+    let numV = '';
+    if (inp && (!inp.value || !inp.value.trim() || inp.value.trim() === 'N/A')) {
+      numV = DEMO_COUNTRY === 'Germany' ? '15123456789' : '5551234567';
+      setNativeValue(inp, numV);
+    }
+    return { status: 'filled', v: `${code.v || '?'} ${numV}`.trim() };
+  }
+
+  function fire(el, t) { const E = t.startsWith('pointer') ? PointerEvent : MouseEvent; try { el.dispatchEvent(new E(t, { bubbles: true, cancelable: true, button: 0, view: window })); } catch { el.dispatchEvent(new Event(t, { bubbles: true })); } }
+  function robustClick(el) { try { el.scrollIntoView({ block: 'center' }); } catch { } try { el.focus(); } catch { } ['pointerover', 'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(t => fire(el, t)); }
+
+  const cfErr = item => item.querySelector('[data-slot="form-label"]')?.getAttribute('data-error') === 'true';
+  const cfVal = item => (item.querySelector('button')?.textContent || '').trim();
+
+  async function fillCountry(item, wantCountry) {
+    const trig = item.querySelector('[data-slot="popover-trigger"]') || item.querySelector('button');
+    if (!trig) return { status: 'failed' };
+    
+    const cur = cfVal(item);
+    if (cur && !cfErr(item) && !/select|choose|^country|search/i.test(cur)) return { status: 'skipped', v: cur };
+    trig.click();
+    let open = null;
+    for (let i = 0; i < 40; i++) { open = [...document.querySelectorAll('[data-radix-popper-content-wrapper],[data-slot="popover-content"],[role=dialog]')].filter(vis).pop(); if (open) break; await sleep(25); }
+    const scope = open || document;
+    const search = scope.querySelector('[cmdk-input],input[role=combobox],input[type=search],input[placeholder*="earch" i]');
+    if (search && wantCountry) { setNativeValue(search, wantCountry); await sleep(350); }
+    let items = [];
+    for (let i = 0; i < 40; i++) { items = [...scope.querySelectorAll('[cmdk-item],[role=option]')].filter(vis); if (items.length) break; await sleep(25); }
+    if (!items.length) { document.body.click(); return { status: 'failed' }; }
+    let opt = null;
+    if (wantCountry) { const w = norm(wantCountry); opt = items.find(i => norm(i.textContent) === w) || items.find(i => norm(i.textContent).includes(w)); }
+    if (!opt) opt = items[0];
+    
+    try { opt.focus(); } catch { }
+    opt.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true }));
+    await sleep(120);
+    if (cfErr(item) || !cfVal(item)) { robustClick(opt); await sleep(180); }
+    document.body.click();
+    return { status: 'filled', v: opt.textContent.trim() };
+  }
+
+  function setSelectByText(sel, matchFn) {
+    const opt = [...sel.options].find(o => matchFn(o.textContent.trim()));
+    if (!opt) return false;
+    const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
+    setter.call(sel, opt.value);
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }
+
+  async function fillBirthdate(item) {
+    const trig = item.querySelector('button[type=button]');
+    if (!trig) return { status: 'failed' };
+    const cur = (trig.textContent || '').trim();
+    if (cur && !/pick|select|date|birth/i.test(cur)) return { status: 'skipped', v: cur };
+    trig.click();
+    let years = null;
+    for (let i = 0; i < 40; i++) { years = [...document.querySelectorAll('select')].find(s => vis(s) && (s.name === 'years' || [...s.options].some(o => /^(19|20)\d\d$/.test(o.textContent.trim())))); if (years) break; await sleep(25); }
+    if (!years) { document.body.click(); return { status: 'failed' }; }
+    setSelectByText(years, t => t === '1990');
+    const months = [...document.querySelectorAll('select')].find(s => vis(s) && (s.name === 'months' || [...s.options].some(o => /january/i.test(o.textContent))));
+    if (months) setSelectByText(months, t => /^june$/i.test(t));
+    await sleep(350);
+    const days = [...document.querySelectorAll('button[name=day]')].filter(d => vis(d) && !d.disabled && d.getAttribute('aria-disabled') !== 'true');
+    const day = days.find(d => d.textContent.trim() === '15') || days[Math.floor(days.length / 2)] || days[0];
+    if (!day) { document.body.click(); return { status: 'failed' }; }
+    day.click();
+    await sleep(120);
+    document.body.click();
+    return { status: 'filled', v: '1990-06-15' };
+  }
+
+  async function fillDate(item) {
+    const trig = item.querySelector('button[type=button]');
+    if (!trig) return { status: 'failed' };
+    if ((trig.textContent || '').trim() && !/pick|select|date/i.test(trig.textContent)) return { status: 'skipped', v: trig.textContent.trim() };
+    trig.click();
+    let days = [];
+    for (let i = 0; i < 40; i++) { days = [...document.querySelectorAll('button[name=day]')].filter(d => vis(d) && !d.disabled && d.getAttribute('aria-disabled') !== 'true'); if (days.length) break; await sleep(25); }
+    if (!days.length) { document.body.click(); return { status: 'failed' }; }
+    
+    const today = new Date(); const cutoff = new Date(today.getTime() + 14 * 864e5);
+    let target = null;
+    for (const d of days) { const al = d.getAttribute('aria-label') || ''; const parsed = Date.parse(al); if (!isNaN(parsed) && parsed >= cutoff.getTime()) { target = d; break; } }
+    if (!target) target = days[days.length - 1];
+    target.click();
+    await sleep(120);
+    document.body.click();
+    return { status: 'filled', v: (target.getAttribute('aria-label') || target.textContent).trim() };
+  }
+
+  
+  async function run() {
+    const items = [...document.querySelectorAll('[data-slot="form-item"]')].filter(vis);
+    
+    const seen = new Set();
+    const report = { filled: [], skipped: [], failed: [] };
+
+    for (const it of items) {
+      const field = it.getAttribute('data-field') || '';
+      const lgl = it.querySelector(':scope > legend, legend, :scope label, label');
+      const label = (lgl ? lgl.textContent : '').replace(/\s+/g, ' ').trim();
+      const key = field || norm(label);
+
+      let kind;
+      const radioCount = it.querySelectorAll('button[role=radio]').length;
+      const isDateLike = /(^|[^a-z])date([^a-z]|$)/i.test((field || '') + ' ' + (label || ''));
+      if (radioCount >= 2) kind = 'radio';
+      else if (radioCount === 1) continue; 
+      else if (/phone|mobile|\btel\b/i.test((field || '') + ' ' + (label || '')) && it.querySelector('[data-slot="select-trigger"],button[role=combobox]') && it.querySelector('input')) kind = 'phone';
+      else if (it.querySelector('.RemoteFlows__CountryField__Label') || (isCountryField(field, label) && it.querySelector('[data-slot="popover-trigger"]'))) kind = 'country';
+      else if (it.querySelector('select')) kind = 'select';
+      else if (/birth|dob/i.test((field || '') + ' ' + (label || '')) && it.querySelector('button[type=button]')) kind = 'birthdate';
+      else if (isDateLike && it.querySelector('button[type=button]')) kind = 'date';
+      else if (it.querySelector('button[role=combobox],[data-slot="select-trigger"],[aria-haspopup=listbox],[aria-haspopup=menu]')) kind = 'dropdown';
+      else if (it.querySelector('textarea')) kind = 'textarea';
+      else if (it.querySelector('input[type=text],input[type=email],input[type=tel],input[type=number],input[type=url],input:not([type])')) kind = 'text';
+      else if (it.querySelector('button[type=button]')) kind = 'date';
+      else continue;
+
+      if ((kind === 'radio') && field && seen.has('radio:' + field)) continue;
+      if (kind === 'radio') seen.add('radio:' + field);
+
+      const tag = `${field || '(label)'}:${label.slice(0, 32)}`;
+      try {
+        if (kind === 'text' || kind === 'textarea') {
+          
+          if (field === 'work_email' || /work email/i.test(label)) { report.skipped.push(`${tag} = (left blank)`); continue; }
+          const el = it.querySelector('input,textarea');
+          if (el.value && el.value.trim() && el.value.trim() !== 'N/A') { report.skipped.push(`${tag} = ${el.value}`); continue; }
+          let val = resolveText(field, label);
+          if (val === '__DATE__') val = mmddyyyy(future);
+          setNativeValue(el, val);
+          report.filled.push(`${tag} = ${val}`);
+        } else if (kind === 'select') {
+          const want = wantForChoice(field, label);
+          const r = fillNativeSelect(it.querySelector('select'), want);
+          report[r.status === 'skipped' ? 'skipped' : r.status === 'filled' ? 'filled' : 'failed'].push(`${tag} = ${r.v || ''}`);
+        } else if (kind === 'radio') {
+          
+          let gf = field;
+          if (!gf || gf === '-') {
+            const r0 = it.querySelector('button[role=radio]');
+            gf = (r0 && (r0.closest('[data-slot="form-item"][data-field]')?.getAttribute('data-field'))) || '';
+          }
+          const want = (gf in BY_FIELD) ? BY_FIELD[gf] : null;
+          const r = fillRadio(it, want);
+          report[r.status === 'skipped' ? 'skipped' : r.status === 'filled' ? 'filled' : 'failed'].push(`${tag} = ${r.v || ''}`);
+        } else if (kind === 'dropdown') {
+          const want = wantForChoice(field, label);
+          const r = await fillSelectDropdown(it, want);
+          report[r.status === 'skipped' ? 'skipped' : r.status === 'filled' ? 'filled' : 'failed'].push(`${tag} = ${r.v || ''}`);
+        } else if (kind === 'phone') {
+          const r = await fillPhone(it);
+          report[r.status === 'skipped' ? 'skipped' : r.status === 'filled' ? 'filled' : 'failed'].push(`${tag} = ${r.v || ''}`);
+        } else if (kind === 'country') {
+          const r = await fillCountry(it, isCountryField(field, label) ? DEMO_COUNTRY : (wantForChoice(field, label) || DEMO_COUNTRY));
+          report[r.status === 'skipped' ? 'skipped' : r.status === 'filled' ? 'filled' : 'failed'].push(`${tag} = ${r.v || ''}`);
+        } else if (kind === 'birthdate') {
+          const r = await fillBirthdate(it);
+          report[r.status === 'skipped' ? 'skipped' : r.status === 'filled' ? 'filled' : 'failed'].push(`${tag} = ${r.v || ''}`);
+        } else if (kind === 'date') {
+          const r = await fillDate(it);
+          report[r.status === 'skipped' ? 'skipped' : r.status === 'filled' ? 'filled' : 'failed'].push(`${tag} = ${r.v || ''}`);
+        }
+      } catch (e) { report.failed.push(`${tag} threw ${e.message}`); }
+    }
+    return report;
+  }
+
+  
+  
+  async function runAll() {
+    
+    
+    
+    
+    const emailInput = [...document.querySelectorAll('[data-slot="form-item"]')]
+      .find(it => it.getAttribute('data-field') === 'email' || /personal email/i.test(it.querySelector('label')?.textContent || ''))
+      ?.querySelector('input');
+    const freshHire = emailInput && (!emailInput.value || !emailInput.value.trim());
+    try {
+      const r = freshHire
+        ? await fetch('/api/counter/increment', { method: 'POST', headers: { Accept: 'application/json' } })
+        : await fetch('/api/counter', { headers: { Accept: 'application/json' } });
+      if (r.ok) { const j = await r.json(); if (j && (j.value != null)) SERVER_NUM = j.value; }
+    } catch { }
+    if (SERVER_NUM == null) SERVER_NUM = Date.now() % 100000; 
+    const all = { filled: [], skipped: [], failed: [], passes: 0 };
+    for (let p = 0; p < 4; p++) {
+      const r = await run();
+      all.passes = p + 1;
+      all.filled.push(...r.filled);
+      all.skipped = r.skipped;
+      all.failed = r.failed;
+      if (r.filled.length === 0) break;
+      await sleep(450); 
+    }
+    return all;
+  }
+
+  function toast(msg, ok) {
+    let t = document.getElementById('__gpToast');
+    if (!t) { t = document.createElement('div'); t.id = '__gpToast'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.style.cssText = `position:fixed;z-index:2147483647;right:16px;bottom:16px;padding:10px 14px;border-radius:8px;font:600 13px/1.3 Inter,system-ui,sans-serif;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.2);background:${ok ? '#FF4E64' : '#E53E3E'}`;
+    setTimeout(() => { t.remove(); }, 3500);
+  }
+
+  window.__gpReport = 'running';
+  toast('Autofilling…', true);
+  runAll().then(r => {
+    window.__gpReport = r;
+    const nf = r.failed && r.failed.length ? `, ${r.failed.length} failed` : '';
+    toast(`Filled ${r.filled.length} field(s)${nf}. Review, then click Continue.`, !(r.failed && r.failed.length));
+  }).catch(e => { window.__gpReport = { error: e.message }; toast('Autofill error: ' + e.message, false); });
+  return 'started';
+})()
+);

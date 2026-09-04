@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-const KEY = 'adp-demo-activated';
+const KEY = 'partner-demo-activated';
 const listeners = new Set<() => void>();
 
 function subscribe(cb: () => void) {

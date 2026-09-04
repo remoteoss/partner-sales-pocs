@@ -1,0 +1,32 @@
+{
+  "company": {
+    "name": "Intuit",
+    "website": "https://quickbooks.intuit.com"
+  },
+  "productName": "QuickBooks Online Payroll",
+  "legalEntity": "Intuit Inc.",
+  "chrome": "quickbooks",
+  "logo": {
+    "src": "/intuit-logo.svg",
+    "alt": "Intuit QuickBooks"
+  },
+  "colors": {
+    "primary": "#2CA01C",
+    "primaryHover": "#248A18",
+    "secondary": "#6B7280",
+    "tertiary": "#F4F5F8",
+    "accent": "#2CA01C",
+    "accentHover": "#248A18",
+    "error": "#E53E3E",
+    "success": "#2CA01C",
+    "borders": "#E5E7EB",
+    "input": "#9CA3AF",
+    "background": "#FFFFFF",
+    "surface": "#FAFAFA",
+    "foreground": "#1F2937"
+  },
+  "fonts": {
+    "family": "Inter, system-ui, sans-serif",
+    "headingFamily": "Inter, system-ui, sans-serif"
+  }
+}

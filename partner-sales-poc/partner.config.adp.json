@@ -3,6 +3,9 @@
     "name": "ADP",
     "website": "https://adp.com"
   },
+  "productName": "Workforce Now",
+  "legalEntity": "ADP, LLC",
+  "chrome": "wfn",
   "logo": {
     "src": "/adp-logo.svg",
     "alt": "ADP Logo"

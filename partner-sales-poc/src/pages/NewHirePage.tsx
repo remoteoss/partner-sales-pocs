@@ -2,22 +2,16 @@ import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Check, Globe2, Shield, TrendingUp, Users, ChevronLeft } from 'lucide-react';
+import { Check, Shield, TrendingUp, ChevronLeft } from 'lucide-react';
 import { useSession } from '../features/company/hooks';
 import { useDemoActivation } from '../hooks/useDemoActivation';
+import config from '../config/partner';
 
 const REMOTE_BENEFITS = [
   'Remote as a legal employer of record (EOR) for international hires',
   'Handles compliance, contracts, and onboarding in 180+ countries',
   'Embedded payroll in currencies where you hire legal entity-free',
   'Fast ramp — hire in days, not months',
-];
-
-const GLOBAL_PAYROLL_BENEFITS = [
-  'ADP Global Payroll for countries where you have a legal entity',
-  'Consolidated global reporting + multi-currency payroll',
-  'Available in 140+ countries via ADP and partners',
-  'For customers with existing international presence',
 ];
 
 type Mode = 'choose' | 'confirmed';
@@ -47,8 +41,8 @@ export function NewHirePage() {
               Our sales team is going to contact you!
             </h3>
             <p className="text-sm text-secondary max-w-md">
-              An ADP Global Payroll specialist will reach out to discuss pricing, cost estimates,
-              and next steps for adding Remote EOR to your Workforce Now account.
+              A Remote specialist will reach out to discuss pricing, cost estimates,
+              and next steps for adding Remote EOR to your {config.productName} account.
             </p>
             <div className="mt-6">
               <Link to="/">
@@ -69,31 +63,25 @@ export function NewHirePage() {
 
       <Card title="International Employee" headerAccent>
         <p className="text-sm text-foreground mb-1 leading-relaxed">
-          If you want to hire and manage payroll for international employees, you need{' '}
-          <span className="font-semibold">ADP Global Payroll Solutions</span>.
+          To hire and manage payroll for international employees, connect{' '}
+          <span className="font-semibold">Remote</span> to your {config.productName} account.
         </p>
         <p className="text-sm text-secondary mb-5 leading-relaxed">
-          You'll get access to our solutions and partner integrations so you can attract
-          and hire the right talent with the right technology &amp; tools globally.
+          Remote handles compliance, contracts, and onboarding so you can attract and hire
+          the right talent globally without setting up entities.
         </p>
 
         <p className="text-xs uppercase tracking-wider font-semibold text-secondary mb-3">
           This is what you can have:
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <ProductTile
-            name="Workforce Now + Remote"
-            tagline="EOR for countries where you don't have an entity"
-            icon={<Globe2 size={18} />}
+            name="EOR"
+            tagline="For countries where you don't have an entity"
+            icon={<img src="/remote-symbol.svg" alt="Remote" className="w-[18px] h-[18px]" />}
             benefits={REMOTE_BENEFITS}
             accent
-          />
-          <ProductTile
-            name="Workforce Now + Global Payroll"
-            tagline="Native payroll in countries where you do"
-            icon={<Users size={18} />}
-            benefits={GLOBAL_PAYROLL_BENEFITS}
           />
         </div>
 
@@ -116,7 +104,7 @@ export function NewHirePage() {
 
       <div className="flex items-center gap-2 text-xs text-secondary pl-1">
         <Shield size={12} />
-        Powered by ADP Global Payroll Solutions and partners
+        Powered by Remote and partners
       </div>
     </div>
   );

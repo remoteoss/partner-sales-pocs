@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  OnboardingFlow,
+import { OnboardingFlow } from '@remoteoss/remote-flows';
+import type {
   OnboardingRenderProps,
   NormalizedFieldError,
   CreditRiskState,
@@ -39,7 +39,7 @@ function AlertError({ errors }: { errors: { apiError: string; fieldErrors: Norma
       )}
       {errors.fieldErrors.map((err, i) => (
         <p key={i} className="text-sm" style={{ color: config.colors.error }}>
-          {err.path}: {err.message}
+          {err.field}: {err.messages.join(', ')}
         </p>
       ))}
     </div>
@@ -467,7 +467,6 @@ export function OnboardingSDK() {
   const [sessionLoading, setSessionLoading] = useState(true);
   
   // Check URL params
-  const useSessionFromUrl = searchParams.get('use_session') === 'true';
   const companyIdFromUrl = searchParams.get('company_id');
   
   // Fallback company ID from .env (for direct homepage access)
@@ -506,7 +505,6 @@ export function OnboardingSDK() {
   }
 
   // Determine company ID source (priority: URL > session > .env)
-  const isUsingSession = (useSessionFromUrl && session?.company_id) || (!companyIdFromUrl && session?.company_id);
   const companyId = companyIdFromUrl || session?.company_id || envCompanyId;
   
   // Use session token if we have session with refresh_token

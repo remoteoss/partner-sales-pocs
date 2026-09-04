@@ -49,7 +49,7 @@ export function CostCalculatorDrawer({ isOpen, onClose }: CostCalculatorDrawerPr
       className="fixed inset-0 overflow-y-auto"
       style={{
         zIndex: 9999,
-        backgroundColor: config.colors.pageBg,
+        backgroundColor: config.colors.background,
       }}
     >
       {/* Header */}

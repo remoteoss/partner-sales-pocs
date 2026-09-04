@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card';
 import { CreateCompany } from '../features/company/CreateCompany';
 import { useSession } from '../features/company/hooks';
 import { useDemoActivation } from '../hooks/useDemoActivation';
+import config from '../config/partner';
 
 export function CreateCompanyPage() {
   const { data: session } = useSession();
@@ -17,9 +18,9 @@ export function CreateCompanyPage() {
       </Link>
 
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Register Company</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Connect Remote</h1>
         <p className="text-sm text-secondary">
-          Provision a company on Remote to activate international hiring via EOR.
+          Connect Remote to your {config.productName} account to start hiring internationally.
         </p>
       </div>
 
@@ -27,8 +28,8 @@ export function CreateCompanyPage() {
         <div className="border-l-4 border-accent bg-accent/5 px-4 py-3 rounded-sm">
           <p className="text-sm font-semibold text-foreground">Complete your Remote registration</p>
           <p className="text-xs text-secondary mt-1 leading-relaxed">
-            Looks like your ADP Workforce Now account doesn't have a Remote-registered company yet.
-            Register below to start hiring in countries where you don't have a legal presence.
+            Your {config.productName} account isn't connected to Remote yet. Register below to
+            start hiring in countries where you don't have a legal presence.
           </p>
         </div>
       )}

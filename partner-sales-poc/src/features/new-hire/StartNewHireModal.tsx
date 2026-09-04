@@ -11,9 +11,6 @@ interface StartNewHireModalProps {
 }
 
 export function StartNewHireModal({ open, onCancel, onConfirm }: StartNewHireModalProps) {
-  // Country selection is intentionally discarded on confirm. The modal is a
-  // visual beat to match the WFN flow screenshots — downstream screens are
-  // always the same International Employee explainer regardless of pick.
   const [country, setCountry] = useState('');
 
   const { data: countries, isLoading, error } = useCountries();

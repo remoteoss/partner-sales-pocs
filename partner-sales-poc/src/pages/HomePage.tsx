@@ -6,6 +6,7 @@ import { UserPlus, FileText, Clock, CheckSquare, ExternalLink, Rocket, Building2
 import { useSession, useOnboardEmployee } from '../features/company/hooks';
 import { useDemoActivation } from '../hooks/useDemoActivation';
 import { StartNewHireModal } from '../features/new-hire/StartNewHireModal';
+import config from '../config/partner';
 
 type Hire = {
   name: string;
@@ -128,9 +129,9 @@ export function HomePage() {
                     Register your company to start hiring internationally
                   </p>
                   <p className="text-xs text-secondary mt-1 mb-3 leading-relaxed">
-                    ADP has enabled Remote EOR for your Workforce Now account. Complete your
-                    company registration with Remote to start hiring in countries where you
-                    don't have a legal presence.
+                    {config.company.name} has enabled Remote EOR for your {config.productName} account.
+                    Complete your company registration with Remote to start hiring in countries
+                    where you don't have a legal presence.
                   </p>
                   <Button variant="accent" size="md" onClick={handleStartHire}>
                     <Building2 size={14} /> Register your company
@@ -228,7 +229,8 @@ export function HomePage() {
                 <div>
                   <p className="text-sm font-semibold text-foreground">Hiring internationally?</p>
                   <p className="text-xs text-secondary mt-1 mb-3">
-                    ADP Global Payroll Solutions + Remote makes it easy to hire outside your entity.
+                    Hire internationally without setting up entities. Remote handles payroll,
+                    contracts, and compliance in 80+ countries.
                   </p>
                   <Button
                     variant="outline"

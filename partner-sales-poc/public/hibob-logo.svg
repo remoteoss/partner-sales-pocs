@@ -1,0 +1,6 @@
+<svg width="94" height="30" viewBox="0 0 94 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="3" width="32" height="24" rx="8" fill="#FF4E64"/>
+  <path d="M28 27 L32 27 L32 22 Z" fill="#FF4E64"/>
+  <text x="16" y="20.5" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="800" fill="#FFFFFF" text-anchor="middle">Hi</text>
+  <text x="38" y="21.5" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="800" fill="#1A1A2E">Bob</text>
+</svg>

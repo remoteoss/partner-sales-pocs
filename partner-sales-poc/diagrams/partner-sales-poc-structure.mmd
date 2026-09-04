@@ -1,0 +1,45 @@
+graph TD
+  CFG["partner.config.*.json<br/>intuit / adp / isolved / hibob"]
+
+  subgraph SPA["Browser SPA — port 3002"]
+    APP["App.tsx<br/>routes + CSS vars"]
+    SHELL["Layout<br/>HiBob / QuickBooks / WFN shell"]
+    GPF["features/gp<br/>Admin, Employee, PayRuns"]
+    EORF["features/company + employment<br/>SDK path and REST path"]
+    RFSDK["@remoteoss/remote-flows<br/>proxy = window.origin"]
+    AXIOS["lib/api-client.ts<br/>axios + token interceptors"]
+  end
+
+  subgraph SRV["Express — same port 3002 process"]
+    VITE["Vite middleware<br/>+ SPA fallback"]
+    ROUTES["api/routes.js"]
+    GPROXY["gp-proxy.js<br/>/v1/* and /v2/*"]
+    EPROXY["proxy.js<br/>/api/v1/*"]
+    TOK["get-token.js<br/>client-credentials / refresh"]
+    JWT["jwt-auth.js<br/>HS256 jwt-bearer<br/>manager + employee"]
+    STATE["session.json<br/>counter.json"]
+  end
+
+  GATEWAY["Remote Gateway<br/>local / sandbox / partners / prod"]
+
+  CFG -->|"VITE_PARTNER_PROFILE"| APP
+  VITE -->|"serves SPA"| APP
+  APP --> SHELL
+  SHELL --> GPF
+  SHELL --> EORF
+  GPF --> RFSDK
+  EORF --> RFSDK
+  EORF --> AXIOS
+  RFSDK -->|"same-origin /v1 /v2"| GPROXY
+  AXIOS -->|"/api/v1/*"| EPROXY
+  AXIOS -->|"fetch token"| ROUTES
+  ROUTES --> TOK
+  ROUTES --> JWT
+  ROUTES --> STATE
+  GPROXY -->|"per-route token"| JWT
+  GPROXY --> TOK
+  EPROXY --> TOK
+  TOK --> GATEWAY
+  JWT -->|"/auth/oauth2/token"| GATEWAY
+  EPROXY --> GATEWAY
+  GPROXY --> GATEWAY

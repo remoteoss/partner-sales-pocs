@@ -1,0 +1,32 @@
+{
+  "company": {
+    "name": "HiBob",
+    "website": "https://www.hibob.com"
+  },
+  "productName": "Global Payroll",
+  "legalEntity": "HiBob Inc.",
+  "chrome": "hibob",
+  "logo": {
+    "src": "/hibob-logo.svg",
+    "alt": "HiBob"
+  },
+  "colors": {
+    "primary": "#FF4E64",
+    "primaryHover": "#E63E53",
+    "secondary": "#6B6B80",
+    "tertiary": "#FFE9EC",
+    "accent": "#FF4E64",
+    "accentHover": "#E63E53",
+    "error": "#E53E3E",
+    "success": "#2FBF71",
+    "borders": "#E6E7EF",
+    "input": "#9A9AAA",
+    "background": "#FFFFFF",
+    "surface": "#F5F6FA",
+    "foreground": "#1A1A2E"
+  },
+  "fonts": {
+    "family": "Inter, system-ui, sans-serif",
+    "headingFamily": "Inter, system-ui, sans-serif"
+  }
+}

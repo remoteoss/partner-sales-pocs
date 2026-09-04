@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Field as FormikField, ErrorMessage as FormikErrorMessage } from 'formik';
 
 interface FieldProps {

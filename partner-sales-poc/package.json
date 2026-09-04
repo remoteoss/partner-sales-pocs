@@ -6,13 +6,15 @@
   "scripts": {
     "dev": "nodemon server/dev-server.js",
     "dev:vite": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@remoteoss/json-schema-form": "^1.2.8",
-    "@remoteoss/remote-flows": "^1.4.3",
+    "@remoteoss/remote-flows": "file:../remote-flows",
     "@tanstack/react-query": "^5.90.16",
     "axios": "^1.13.2",
     "formik": "^2.4.9",
@@ -39,6 +41,7 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "vitest": "^4.1.5"
   }
 }

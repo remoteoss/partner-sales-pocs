@@ -25,9 +25,10 @@ export function CreateEmploymentAPI() {
   );
 
   const { mutate: createEmployment, isPending, data: responseData } = useCreateEmployment({
-    onSuccess: (data: { data?: { employment?: { id: string } } }) => {
-      if (data?.data?.employment?.id) {
-        setEmploymentId(data.data.employment.id);
+    onSuccess: (data: unknown) => {
+      const res = data as { data?: { employment?: { id: string } } };
+      if (res?.data?.employment?.id) {
+        setEmploymentId(res.data.employment.id);
         setStep('success');
       }
     },

@@ -1,4 +1,5 @@
-import { useEffect, useState, ReactNode } from 'react';
+import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { createHeadlessForm, modify } from '@remoteoss/json-schema-form';
 import { Formik, Form as FormikForm } from 'formik';
 import { fieldsMapConfig } from './FormFields';
@@ -139,9 +140,18 @@ export function JsonSchemaForm({
     );
   }
 
-  const { fields, handleValidation } = createHeadlessForm(modifiedSchema, {
-    initialValues: storedValues,
-  });
+  // The SDK's headless-form types (JsfSchema / Field / SchemaValue) don't line
+  // up with the local FieldConfig / Record shapes this legacy ADP form was
+  // written against. Cast the helper to a loose local signature at the boundary
+  // — runtime behaviour is unchanged.
+  const cf = createHeadlessForm as unknown as (
+    schema: Record<string, unknown>,
+    options: { initialValues: Record<string, unknown> },
+  ) => {
+    fields: FieldConfig[];
+    handleValidation: (values: Record<string, unknown>) => { formErrors: Record<string, unknown> };
+  };
+  const { fields, handleValidation } = cf(modifiedSchema, { initialValues: storedValues });
 
   const formInitialValues = getPrefilledValues(fields, storedValues as Record<string, unknown>);
 

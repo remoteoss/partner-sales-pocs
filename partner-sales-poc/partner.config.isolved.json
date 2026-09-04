@@ -1,0 +1,32 @@
+{
+  "company": {
+    "name": "isolved",
+    "website": "https://www.isolvedhcm.com"
+  },
+  "productName": "People Cloud",
+  "legalEntity": "isolved, Inc.",
+  "chrome": "isolved",
+  "logo": {
+    "src": "/isolved-logo.svg",
+    "alt": "isolved People Cloud"
+  },
+  "colors": {
+    "primary": "#E50082",
+    "primaryHover": "#C70071",
+    "secondary": "#666666",
+    "tertiary": "#FFEAF4",
+    "accent": "#C70071",
+    "accentHover": "#A3005C",
+    "error": "#E53E3E",
+    "success": "#38A169",
+    "borders": "#DDE2E8",
+    "input": "#999999",
+    "background": "#ffffff",
+    "surface": "#F7F5F6",
+    "foreground": "#111111"
+  },
+  "fonts": {
+    "family": "Inter, system-ui, sans-serif",
+    "headingFamily": "Inter, system-ui, sans-serif"
+  }
+}
