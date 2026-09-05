@@ -11,22 +11,22 @@
     "alt": "HiBob"
   },
   "colors": {
-    "primary": "#FF4E64",
-    "primaryHover": "#E63E53",
-    "secondary": "#6B6B80",
-    "tertiary": "#FFE9EC",
-    "accent": "#FF4E64",
-    "accentHover": "#E63E53",
+    "primary": "#83143D",
+    "primaryHover": "#60032A",
+    "secondary": "#6E6E67",
+    "tertiary": "#FAE1E1",
+    "accent": "#EE164F",
+    "accentHover": "#BB1141",
     "error": "#E53E3E",
     "success": "#2FBF71",
-    "borders": "#E6E7EF",
-    "input": "#9A9AAA",
+    "borders": "#DDDDD2",
+    "input": "#AAAA9B",
     "background": "#FFFFFF",
-    "surface": "#F5F6FA",
-    "foreground": "#1A1A2E"
+    "surface": "#F5F4ED",
+    "foreground": "#3A3A37"
   },
   "fonts": {
-    "family": "Inter, system-ui, sans-serif",
-    "headingFamily": "Inter, system-ui, sans-serif"
+    "family": "Montserrat, 'Gotham SSm A', system-ui, sans-serif",
+    "headingFamily": "'Zilla Slab', 'Sentinel SSm A', Georgia, serif"
   }
 }

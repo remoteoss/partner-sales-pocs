@@ -46,7 +46,7 @@ describe('loadPartnerConfig', () => {
     const c = loadPartnerConfig('hibob');
     expect(c.company.name).toBe('HiBob');
     expect(c.chrome).toBe('hibob');
-    expect(c.colors.primary).toBe('#FF4E64');
+    expect(c.colors.primary).toBe('#83143D');
     expect(c.productName).toBe('Bob');
   });
 
