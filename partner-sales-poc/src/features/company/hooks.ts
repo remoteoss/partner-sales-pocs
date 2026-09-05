@@ -211,6 +211,24 @@ export function useMagicLink() {
  * Hook to onboard an employee via a magic link to Remote's onboarding flow.
  * Wraps useMagicLink with a user_id guard and window.open on success.
  */
+// Co-branding for the employer's landing in Remote.
+//
+// Dragon reads `?whitelabel_brand=<partner>` in dev/staging and persists it to
+// sessionStorage (usePartner.tsx), which is how this demo themes Remote without
+// touching Tiger's brand enums. Tiger preserves the query string through the
+// magic-link redirect (Auth.Handlers.MagicLink.build_redirection_url splits on
+// "?" and rebuilds), so riding along on the link works and removes the manual
+// "visit Dragon with the param first" step before every demo.
+//
+// Only applied against a local gateway — on a real environment the brand comes
+// from the account, not a URL parameter.
+function withWhitelabelBrand(path: string): string {
+  const profile = import.meta.env.VITE_PARTNER_PROFILE as string | undefined;
+  const isLocal = import.meta.env.VITE_REMOTE_GATEWAY === 'local';
+  if (!profile || !isLocal) return path;
+  return `${path}${path.includes('?') ? '&' : '?'}whitelabel_brand=${profile}`;
+}
+
 export function useOnboardEmployee(userId: string | null | undefined) {
   const { mutate, isPending, error } = useMagicLink();
   const onboard = () => {
@@ -221,7 +239,9 @@ export function useOnboardEmployee(userId: string | null | undefined) {
     mutate(
       {
         userId,
-        path: '/dashboard/people/add?employmentType=full_time&entityType=remote_entity',
+        path: withWhitelabelBrand(
+          '/dashboard/people/add?employmentType=full_time&entityType=remote_entity',
+        ),
         useSessionToken: true,
       },
       {
