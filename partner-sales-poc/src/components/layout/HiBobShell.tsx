@@ -11,6 +11,7 @@ import {
   Search,
 } from 'lucide-react';
 import config from '../../config/partner';
+import { DemoStateControls } from '../demo/DemoStateControls';
 
 // The partner shell. One persona only: an employer admin.
 //
@@ -129,6 +130,8 @@ export function HiBobShell() {
             <span className="text-sm">Search</span>
           </div>
           <div className="flex items-center gap-4">
+            {/* Demo driver controls — which of the three states the story is in */}
+            <DemoStateControls variant="pill" />
             <button className="relative text-secondary hover:text-foreground transition-colors">
               <Bell size={18} />
               <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />

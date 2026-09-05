@@ -1,11 +1,26 @@
 import { fetchCustomerToken, fetchPartnerToken, buildGatewayURL } from './get-token.js';
 import { fetchSessionToken, hasSessionToken } from './session.js';
 
-// Endpoints that require partner-level (client_credentials) auth
-const PARTNER_ENDPOINTS = [
-  '/v1/companies',
-  '/v1/countries',
-];
+// Endpoints that require partner-level (client_credentials) auth.
+//
+// These are the ONLY calls made before a company (and therefore a user) exists,
+// so they are the only ones a client-credentials token can serve. Matching is
+// EXACT, not by prefix: a client-credentials token has no user behind it, and
+// Tiger resolves its `sub` as a user slug, so any user-scoped endpoint fails
+// with "User not found with the given slug: <client_id>" or "Company not found".
+//
+// This bit us: '/v1/countries' as a PREFIX also captured
+// /v1/countries/CAN/employment_basic_information — the Basic Information step's
+// schema — which needs a real user token and 404'd with "Company not found".
+const PARTNER_PATHS = new Set([
+  '/v1/companies', // POST — create a company
+  '/v1/companies/schema', // company address-details schema, pre-company
+  '/v1/countries', // country list for the picker
+]);
+
+// GET /v1/countries/{code}/address_details — also pre-company (company creation
+// form). Same shape as the allowance in gp-proxy.js.
+const PARTNER_PATH_PATTERNS = [/^\/v1\/countries\/[^/]+\/address_details$/];
 
 /**
  * Determine auth type for an endpoint
@@ -23,12 +38,22 @@ const PARTNER_ENDPOINTS = [
  * is. The remote-flows SDK sets this header at mount time (see
  * RemoteFlowsWrapper.tsx) because its proxy headers are static.
  */
-export function getAuthType(path, useSessionToken) {
-  if (PARTNER_ENDPOINTS.some(endpoint => path.startsWith(endpoint))) {
+export function getAuthType(path, useSessionToken, sessionAvailable = false) {
+  const pathname = path.split('?')[0];
+
+  if (
+    PARTNER_PATHS.has(pathname) ||
+    PARTNER_PATH_PATTERNS.some((re) => re.test(pathname))
+  ) {
     return 'partner';
   }
 
-  if (useSessionToken) {
+  // Everything else is user-scoped. Prefer the live company's token whenever we
+  // have one: it is the company the demo just created on screen, and using the
+  // .env customer token instead would silently act on a different company.
+  // We check the server-side session as well as the caller's header, because the
+  // SDK's proxy headers are fixed at mount and some flows never set it.
+  if (useSessionToken || sessionAvailable) {
     return 'session';
   }
 
@@ -51,7 +76,7 @@ export function createProxyMiddleware() {
       const useSessionToken = req.headers['x-use-session-token'] === 'true';
       
       // Determine which token to use
-      const authType = getAuthType(apiPath, useSessionToken);
+      const authType = getAuthType(apiPath, useSessionToken, hasSessionToken());
       
       let accessToken;
       try {
