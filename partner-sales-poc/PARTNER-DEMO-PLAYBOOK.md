@@ -227,7 +227,13 @@ Things that will bite you, in the order they bit me:
   again. **Never `mix ecto.reset`** — it drops your database.
 - **Stale `.next`.** After any dependency churn in Dragon, clear it before chasing
   build errors. A stale cache made SVGs fall through to the PostCSS pipeline and
-  produced a `CssSyntaxError` in a file nobody had touched.
+  produced a `CssSyntaxError` in a file nobody had touched (e.g. `Error evaluating
+  Node.js code` / `CssSyntaxError` pointing at a `.svg` under `public/images/icons/`).
+  Fix: stop the Dragon dev server, then
+  ```bash
+  cd ~/cursor/dragon/dragon/apps/employ && rm -rf .next
+  ```
+  and restart `pnpm dev`.
 - **Tiger 500s are opaque.** The API returns bare `"Internal Server Error"` and dev
   logs are console-only. To get the real stacktrace, call the handler in-process:
   a `mix run` script invoking the same module the controller calls, wrapped in
