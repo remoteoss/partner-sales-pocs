@@ -134,11 +134,14 @@ function ReviewStepContent({
         
         {/* Basic Information */}
         {onboardingBag.meta?.fields?.basic_information && (
-          <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: config.colors.tertiary }}>
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="text-sm font-medium">Basic Information</h4>
-              <button 
-                className="text-xs px-2 py-1 rounded"
+          <div
+            className="mb-4 p-4 rounded-lg"
+            style={{ backgroundColor: config.colors.surface, border: `1px solid ${config.colors.borders}` }}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="text-sm font-semibold" style={{ color: config.colors.foreground }}>Basic Information</h4>
+              <button
+                className="text-xs px-2 py-1 rounded font-medium"
                 style={{ color: config.colors.primary }}
                 onClick={() => onboardingBag.goTo('basic_information')}
                 disabled={onboardingBag.isEmploymentReadOnly}
@@ -146,13 +149,14 @@ function ReviewStepContent({
                 Edit
               </button>
             </div>
-            <div className="text-sm space-y-1" style={{ color: config.colors.secondary }}>
+            <div className="text-sm space-y-3">
               {Object.entries(onboardingBag.meta.fields.basic_information).map(([key, value]: [string, any]) => {
                 if (value?.label && value?.prettyValue) {
                   return (
-                    <p key={key}>
-                      <span className="font-medium">{value.label}:</span> {value.prettyValue}
-                    </p>
+                    <div key={key}>
+                      <p className="font-medium" style={{ color: config.colors.foreground }}>{value.label}</p>
+                      <p className="break-words" style={{ color: config.colors.secondary }}>{value.prettyValue}</p>
+                    </div>
                   );
                 }
                 return null;
@@ -163,11 +167,14 @@ function ReviewStepContent({
 
         {/* Contract Details */}
         {onboardingBag.meta?.fields?.contract_details && (
-          <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: config.colors.tertiary }}>
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="text-sm font-medium">Contract Details</h4>
-              <button 
-                className="text-xs px-2 py-1 rounded"
+          <div
+            className="mb-4 p-4 rounded-lg"
+            style={{ backgroundColor: config.colors.surface, border: `1px solid ${config.colors.borders}` }}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="text-sm font-semibold" style={{ color: config.colors.foreground }}>Contract Details</h4>
+              <button
+                className="text-xs px-2 py-1 rounded font-medium"
                 style={{ color: config.colors.primary }}
                 onClick={() => onboardingBag.goTo('contract_details')}
                 disabled={onboardingBag.isEmploymentReadOnly}
@@ -175,13 +182,14 @@ function ReviewStepContent({
                 Edit
               </button>
             </div>
-            <div className="text-sm space-y-1" style={{ color: config.colors.secondary }}>
+            <div className="text-sm space-y-3">
               {Object.entries(onboardingBag.meta.fields.contract_details).map(([key, value]: [string, any]) => {
                 if (value?.label && value?.prettyValue) {
                   return (
-                    <p key={key}>
-                      <span className="font-medium">{value.label}:</span> {value.prettyValue}
-                    </p>
+                    <div key={key}>
+                      <p className="font-medium" style={{ color: config.colors.foreground }}>{value.label}</p>
+                      <p className="break-words" style={{ color: config.colors.secondary }}>{value.prettyValue}</p>
+                    </div>
                   );
                 }
                 return null;
@@ -526,6 +534,9 @@ export function OnboardingSDK() {
   const [searchParams] = useSearchParams();
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
+  // Debug-only session info (company id, source). Hidden by default — this is
+  // internal/demo-operator context, not something an audience should see.
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
   
   // Check URL params
   const companyIdFromUrl = searchParams.get('company_id');
@@ -583,13 +594,28 @@ export function OnboardingSDK() {
   if (companyId) {
     return (
       <div>
-        <div className="mb-4 p-3 rounded-lg flex items-center justify-between" style={{ backgroundColor: config.colors.tertiary }}>
-          <span className="text-sm" style={{ color: config.colors.secondary }}>
-            Company: <code className="px-2 py-1 rounded font-mono" style={{ backgroundColor: config.colors.background }}>{companyId}</code>
-            <span className="ml-2 text-xs" style={{ color: config.colors.primary }}>({getSourceLabel()})</span>
-          </span>
+        <div className="mb-4">
+          <button
+            type="button"
+            className="text-xs font-medium"
+            style={{ color: config.colors.secondary }}
+            onClick={() => setShowDebugInfo((v) => !v)}
+          >
+            {showDebugInfo ? 'Hide session info' : 'Show session info'}
+          </button>
+          {showDebugInfo && (
+            <div
+              className="mt-2 p-3 rounded-lg flex items-center justify-between"
+              style={{ backgroundColor: config.colors.surface, border: `1px solid ${config.colors.borders}` }}
+            >
+              <span className="text-sm" style={{ color: config.colors.secondary }}>
+                Company: <code className="px-2 py-1 rounded font-mono" style={{ backgroundColor: config.colors.background }}>{companyId}</code>
+                <span className="ml-2 text-xs" style={{ color: config.colors.primary }}>({getSourceLabel()})</span>
+              </span>
+            </div>
+          )}
         </div>
-        <OnboardingWithProps 
+        <OnboardingWithProps
           companyId={companyId}
           useSessionToken={useSessionToken}
           initialValues={defaultEmployeeValues}
