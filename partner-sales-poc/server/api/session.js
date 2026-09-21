@@ -77,15 +77,15 @@ export async function fetchSessionToken() {
     throw new Error('No session refresh token available');
   }
 
-  const { VITE_CLIENT_ID, VITE_CLIENT_SECRET } = process.env;
+  const { REMOTE_CLIENT_ID, REMOTE_CLIENT_SECRET } = process.env;
   
-  if (!VITE_CLIENT_ID || !VITE_CLIENT_SECRET) {
+  if (!REMOTE_CLIENT_ID || !REMOTE_CLIENT_SECRET) {
     throw new Error('Missing client credentials');
   }
 
   const gatewayUrl = buildGatewayURL();
   const encodedCredentials = Buffer.from(
-    `${VITE_CLIENT_ID}:${VITE_CLIENT_SECRET}`
+    `${REMOTE_CLIENT_ID}:${REMOTE_CLIENT_SECRET}`
   ).toString('base64');
 
   const response = await fetch(`${gatewayUrl}/auth/oauth2/token`, {

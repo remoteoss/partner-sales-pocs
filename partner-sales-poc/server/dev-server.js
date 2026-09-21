@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { setupRoutes } from './api/routes.js';
+import { buildGatewayURL } from './api/get-token.js';
 
 dotenv.config();
 
@@ -39,6 +40,9 @@ const startServer = async () => {
 
   app.listen(port, () => {
     console.log(`🚀 Partner Sales POC running at http://localhost:${port}`);
+    console.log(
+      `   gateway: ${buildGatewayURL()}  (VITE_REMOTE_GATEWAY=${process.env.VITE_REMOTE_GATEWAY || 'unset -> partners'})`
+    );
   });
 };
 

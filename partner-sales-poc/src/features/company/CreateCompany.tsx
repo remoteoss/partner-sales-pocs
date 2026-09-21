@@ -9,6 +9,35 @@ import { useCounter, getDefaultCompanyValues } from '../../hooks/useCounter';
 import { useQueryClient } from '@tanstack/react-query';
 import config from '../../config/partner';
 
+/**
+ * Keys whose values are credentials and should never be rendered on screen.
+ * The success panel below shows the raw API response so partners can see the
+ * payload shape; this masks the secrets in it without changing the shape.
+ *
+ * DISPLAY ONLY. The real tokens are extracted in `createCompany` and written to
+ * server/session.json before this ever renders, and every downstream flow reads
+ * them from there — so redacting here cannot affect functionality.
+ */
+const CREDENTIAL_KEYS = ['access_token', 'refresh_token', 'id_token'];
+
+function redactCredentials<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => redactCredentials(item)) as unknown as T;
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (CREDENTIAL_KEYS.includes(k) && typeof v === 'string' && v.length > 0) {
+        out[k] = `<redacted - ${v.length} chars>`;
+      } else {
+        out[k] = redactCredentials(v);
+      }
+    }
+    return out as unknown as T;
+  }
+  return value;
+}
+
 const CURRENCY_OPTIONS = [
   { value: 'USD', label: 'USD - US Dollar' },
   { value: 'EUR', label: 'EUR - Euro' },
@@ -208,7 +237,7 @@ export function CreateCompany() {
           className="text-left p-4 rounded-lg overflow-auto text-xs max-h-48 mb-4"
           style={{ backgroundColor: config.colors.tertiary }}
         >
-          {JSON.stringify(responseData, null, 2)}
+          {JSON.stringify(redactCredentials(responseData), null, 2)}
         </pre>
         <Button 
           variant="outline"
