@@ -26,6 +26,54 @@ interface Session {
   created_at: string | null;
 }
 
+/**
+ * Turn a Remote API error body into a readable string.
+ *
+ * The gateway returns field-level validation errors as an ARRAY of objects,
+ * e.g. { message: [{ field: "...", message: "..." }, ...] }. Passing that
+ * array straight to `new Error()` stringifies it to "[object Object]", which
+ * hides the actual problem. This flattens the common shapes instead.
+ */
+function formatApiError(body: unknown, status: number, action: string): string {
+  const fallback = `Failed to ${action}: HTTP ${status}`;
+  if (!body || typeof body !== 'object') return fallback;
+
+  const b = body as Record<string, unknown>;
+  // Some responses nest details under `errors` instead of `message`.
+  const raw = b.message ?? b.errors ?? b.error ?? b.description;
+
+  const describe = (item: unknown): string => {
+    if (typeof item === 'string') return item;
+    if (!item || typeof item !== 'object') return String(item);
+    const o = item as Record<string, unknown>;
+    // Prefer a "field: message" rendering when both are available.
+    const text = o.message ?? o.detail ?? o.description ?? o.reason;
+    const field = o.field ?? o.name ?? o.pointer ?? o.path;
+    if (typeof text === 'string') {
+      return field ? `${String(field)}: ${text}` : text;
+    }
+    // Unknown shape - show the JSON rather than "[object Object]".
+    try {
+      return JSON.stringify(o);
+    } catch {
+      return String(o);
+    }
+  };
+
+  if (Array.isArray(raw)) {
+    const parts = raw.map(describe).filter(Boolean);
+    return parts.length ? `${fallback} - ${parts.join('; ')}` : fallback;
+  }
+  if (raw && typeof raw === 'object') return `${fallback} - ${describe(raw)}`;
+  if (typeof raw === 'string' && raw) return raw;
+
+  try {
+    return `${fallback} - ${JSON.stringify(b)}`;
+  } catch {
+    return fallback;
+  }
+}
+
 // Fetch list of countries from Remote API via proxy
 async function fetchCountries() {
   const response = await fetch('/api/v1/countries');
@@ -66,10 +114,10 @@ async function createCompany(payload: CompanyFormValues) {
   });
   
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || `Failed to create company: ${response.status}`);
+    const error = await response.json().catch(() => null);
+    throw new Error(formatApiError(error, response.status, 'create company'));
   }
-  
+
   const data = await response.json();
   
   // Extract tokens and save to session
