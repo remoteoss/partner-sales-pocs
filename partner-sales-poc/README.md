@@ -27,9 +27,9 @@ cp .env.example .env
 Edit `.env` with your credentials:
 
 ```env
-VITE_CLIENT_ID=your_client_id
-VITE_CLIENT_SECRET=your_client_secret
-VITE_REFRESH_TOKEN=your_refresh_token
+REMOTE_CLIENT_ID=your_client_id
+REMOTE_CLIENT_SECRET=your_client_secret
+REMOTE_REFRESH_TOKEN=your_refresh_token
 VITE_REMOTE_GATEWAY=partners
 ```
 

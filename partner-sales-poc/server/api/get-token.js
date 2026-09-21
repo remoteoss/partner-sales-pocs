@@ -20,15 +20,15 @@ let customerTokenCache = null;
  * Used for company creation
  */
 export async function fetchPartnerToken() {
-  const { VITE_CLIENT_ID, VITE_CLIENT_SECRET } = process.env;
+  const { REMOTE_CLIENT_ID, REMOTE_CLIENT_SECRET } = process.env;
 
-  if (!VITE_CLIENT_ID || !VITE_CLIENT_SECRET) {
-    throw new Error('Missing VITE_CLIENT_ID or VITE_CLIENT_SECRET');
+  if (!REMOTE_CLIENT_ID || !REMOTE_CLIENT_SECRET) {
+    throw new Error('Missing REMOTE_CLIENT_ID or REMOTE_CLIENT_SECRET');
   }
 
   const gatewayUrl = buildGatewayURL();
   const encodedCredentials = Buffer.from(
-    `${VITE_CLIENT_ID}:${VITE_CLIENT_SECRET}`
+    `${REMOTE_CLIENT_ID}:${REMOTE_CLIENT_SECRET}`
   ).toString('base64');
 
   const response = await fetch(`${gatewayUrl}/auth/oauth2/token`, {
@@ -56,15 +56,15 @@ export async function fetchPartnerToken() {
  * Used for employment creation and other customer operations
  */
 export async function fetchCustomerToken() {
-  const { VITE_CLIENT_ID, VITE_CLIENT_SECRET, VITE_REFRESH_TOKEN, VITE_REMOTE_GATEWAY } = process.env;
+  const { REMOTE_CLIENT_ID, REMOTE_CLIENT_SECRET, REMOTE_REFRESH_TOKEN, VITE_REMOTE_GATEWAY } = process.env;
 
-  if (!VITE_CLIENT_ID || (!VITE_CLIENT_SECRET && VITE_REMOTE_GATEWAY !== 'local') || !VITE_REFRESH_TOKEN) {
+  if (!REMOTE_CLIENT_ID || (!REMOTE_CLIENT_SECRET && VITE_REMOTE_GATEWAY !== 'local') || !REMOTE_REFRESH_TOKEN) {
     throw new Error('Missing required credentials for customer token');
   }
 
   const gatewayUrl = buildGatewayURL();
   const encodedCredentials = Buffer.from(
-    `${VITE_CLIENT_ID}:${VITE_CLIENT_SECRET}`
+    `${REMOTE_CLIENT_ID}:${REMOTE_CLIENT_SECRET}`
   ).toString('base64');
 
   const response = await fetch(`${gatewayUrl}/auth/oauth2/token`, {
@@ -75,7 +75,7 @@ export async function fetchCustomerToken() {
     },
     body: new URLSearchParams({
       grant_type: 'refresh_token',
-      refresh_token: VITE_REFRESH_TOKEN,
+      refresh_token: REMOTE_REFRESH_TOKEN,
     }),
   });
 
