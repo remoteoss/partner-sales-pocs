@@ -93,11 +93,17 @@ The panel showed live `access_token` and `refresh_token` values on screen. Now
 per-environment files can't be committed by accident.
 `.gitignore`
 
-`server/session.json` is a separate and more urgent problem: it is *tracked*
-in this repo and contains a live company refresh token. Untracking it is
-handled on its own branch, since adding a `.gitignore` entry does not untrack
-an already-tracked file, and neither action removes the token from history.
-The exposed tokens need rotating regardless.
+**`server/session.json` is no longer tracked.** It was committed in the base
+template and is rewritten on every company creation, so it carried whichever
+refresh token was current straight into the repo — two distinct ones across
+the branches. A `.gitignore` entry does not untrack an already-tracked file,
+so this also does `git rm --cached`. Neither removes the tokens from history.
+
+Low severity, and worth being precise about why: these are sandbox tokens,
+and the refresh flow also requires `REMOTE_CLIENT_ID` / `REMOTE_CLIENT_SECRET`,
+which were never committed on any branch. A refresh token alone cannot mint an
+access token. The real value here is that the file stops re-committing a fresh
+token on every run.
 
 ---
 
