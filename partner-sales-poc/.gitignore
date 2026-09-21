@@ -29,3 +29,6 @@ dist-ssr
 # Runtime session state - rewritten on every company creation, and carries
 # the refresh token that creation mints.
 server/session.json
+
+# TypeScript incremental build info
+*.tsbuildinfo

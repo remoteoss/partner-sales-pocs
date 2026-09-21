@@ -1,50 +1,53 @@
 import { fetchCustomerToken, fetchPartnerToken, buildGatewayURL } from './get-token.js';
 import { fetchSessionToken, hasSessionToken } from './session.js';
 
-// Endpoints that require partner-level (client_credentials) auth.
-// Prefix match - everything underneath these paths is partner-level too.
-const PARTNER_ENDPOINTS = [
-  '/v1/companies',
-];
-
-// Partner-level, but ONLY as an exact path (optionally with a query string).
+// Endpoints that take a partner-level (client_credentials) token.
 //
-// `/v1/countries` lists supported countries and is partner-level. The per-country
-// form schemas underneath it - `/v1/countries/{code}/employment_basic_information`,
-// `/v1/countries/{code}/contract_details` - are NOT: they return company-scoped
-// data such as selectable managers and departments, and the API requires a
-// company-scoped token. Matching them by prefix sent them with the partner token
-// and they returned 404.
-const PARTNER_EXACT_ENDPOINTS = [
-  '/v1/countries',
-];
+// These are the ONLY calls made before a company — and therefore a user —
+// exists, so they are the only ones a client-credentials token can serve. That
+// token has no user behind it: the API resolves its `sub` as a user slug, so
+// any user-scoped endpoint fails with "User not found with the given slug:
+// <client_id>" or "Company not found".
+//
+// Matching is EXACT, never by prefix. Prefix matching on '/v1/countries' also
+// captured /v1/countries/{code}/employment_basic_information — the Basic
+// Information step's schema, which needs a real user token — and it 404'd.
+const PARTNER_PATHS = new Set([
+  '/v1/companies', // POST - create a company
+  '/v1/companies/schema', // company address-details schema, pre-company
+  '/v1/countries', // country list for the picker
+]);
 
-// Endpoints that can use session token (newly created company)
-const SESSION_TOKEN_ENDPOINTS = [
-  '/v1/magic-link',
-];
+// Pre-company too, but parameterised so they can't live in the Set above.
+// /v1/countries/{code}/address_details backs the company creation form.
+const PARTNER_PATH_PATTERNS = [/^\/v1\/countries\/[^/]+\/address_details$/];
 
 /**
- * Determine auth type for an endpoint
+ * Determine auth type for an endpoint.
  * Returns: 'partner' | 'session' | 'customer'
+ *
+ * Order matters. Partner paths win outright: they are called before any
+ * customer context exists, so a session token is meaningless there even when
+ * the caller asks for one.
+ *
+ * Everything else is user-scoped and prefers the live session company. We check
+ * the server-side session as well as the caller's header because the
+ * remote-flows SDK fixes its proxy headers at mount time and some flows never
+ * set it. Without that fallback an employment call lands in the .env company
+ * instead of the one just created on screen — silently, with no error, so the
+ * hire simply isn't where the demo says it is.
  */
-function getAuthType(path, useSessionToken) {
-  // Check if endpoint supports session token and session is available
-  if (useSessionToken && SESSION_TOKEN_ENDPOINTS.some(endpoint => path.startsWith(endpoint))) {
-    return 'session';
-  }
-  
-  // Partner endpoints matched exactly (query string allowed)
-  if (PARTNER_EXACT_ENDPOINTS.some(endpoint => path === endpoint || path.startsWith(`${endpoint}?`))) {
+export function getAuthType(path, useSessionToken, sessionAvailable = false) {
+  const pathname = path.split('?')[0];
+
+  if (PARTNER_PATHS.has(pathname) || PARTNER_PATH_PATTERNS.some((re) => re.test(pathname))) {
     return 'partner';
   }
 
-  // Partner endpoints matched by prefix
-  if (PARTNER_ENDPOINTS.some(endpoint => path.startsWith(endpoint))) {
-    return 'partner';
+  if (useSessionToken || sessionAvailable) {
+    return 'session';
   }
-  
-  // Default to customer token
+
   return 'customer';
 }
 
@@ -63,8 +66,9 @@ export function createProxyMiddleware() {
       // Check for X-Use-Session-Token header
       const useSessionToken = req.headers['x-use-session-token'] === 'true';
       
-      // Determine which token to use
-      const authType = getAuthType(apiPath, useSessionToken);
+      // Determine which token to use. hasSessionToken() is passed so a live
+      // company created on screen wins even when the caller sets no header.
+      const authType = getAuthType(apiPath, useSessionToken, hasSessionToken());
       
       let accessToken;
       try {
