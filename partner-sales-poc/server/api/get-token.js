@@ -1,3 +1,7 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 const ENVIRONMENTS = {
   local: 'http://localhost:4000/api/eor',
   partners: 'https://gateway.partners.remote-sandbox.com',
@@ -5,6 +9,27 @@ const ENVIRONMENTS = {
   sandbox: 'https://gateway.remote-sandbox.com',
   staging: 'https://gateway.niceremote.com',
 };
+
+const SESSION_FILE = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../session.json'
+);
+
+/**
+ * Read the refresh token written by company creation, if there is one.
+ *
+ * Read directly rather than importing from session.js, which already imports
+ * buildGatewayURL from this module — going the other way would create a cycle.
+ * Returns null when there is no session, so callers can fall back to .env.
+ */
+function readSessionRefreshToken() {
+  try {
+    const session = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
+    return session.refresh_token || null;
+  } catch {
+    return null;
+  }
+}
 
 export function buildGatewayURL() {
   const env = process.env.VITE_REMOTE_GATEWAY || 'partners';
@@ -58,8 +83,27 @@ export async function fetchPartnerToken() {
 export async function fetchCustomerToken() {
   const { REMOTE_CLIENT_ID, REMOTE_CLIENT_SECRET, REMOTE_REFRESH_TOKEN, VITE_REMOTE_GATEWAY } = process.env;
 
-  if (!REMOTE_CLIENT_ID || (!REMOTE_CLIENT_SECRET && VITE_REMOTE_GATEWAY !== 'local') || !REMOTE_REFRESH_TOKEN) {
-    throw new Error('Missing required credentials for customer token');
+  // Prefer the refresh token minted by company creation. It belongs to a company
+  // that definitely consented, whereas REMOTE_REFRESH_TOKEN is a manually pasted
+  // value that is easy to get wrong and goes stale. Fall back to .env so an
+  // already-consented company can still be targeted without creating one.
+  const sessionRefreshToken = readSessionRefreshToken();
+  // Treat the unedited template value as absent - otherwise the placeholder is
+  // truthy, gets sent to the gateway, and returns a misleading
+  // invalid_refresh_token instead of "create a company first".
+  const envRefreshToken =
+    REMOTE_REFRESH_TOKEN && !REMOTE_REFRESH_TOKEN.startsWith('your_') ? REMOTE_REFRESH_TOKEN : null;
+  const refreshToken = sessionRefreshToken || envRefreshToken;
+  const tokenSource = sessionRefreshToken ? 'server/session.json' : '.env REMOTE_REFRESH_TOKEN';
+
+  if (!REMOTE_CLIENT_ID || (!REMOTE_CLIENT_SECRET && VITE_REMOTE_GATEWAY !== 'local')) {
+    throw new Error('Missing REMOTE_CLIENT_ID or REMOTE_CLIENT_SECRET');
+  }
+  if (!refreshToken) {
+    throw new Error(
+      'No refresh token available. Create a company first (which mints one into ' +
+        'server/session.json), or set REMOTE_REFRESH_TOKEN for an already-consented company.'
+    );
   }
 
   const gatewayUrl = buildGatewayURL();
@@ -75,13 +119,14 @@ export async function fetchCustomerToken() {
     },
     body: new URLSearchParams({
       grant_type: 'refresh_token',
-      refresh_token: REMOTE_REFRESH_TOKEN,
+      refresh_token: refreshToken,
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`HTTP ${response.status}: ${errorText}`);
+    // Name the source, so an invalid_refresh_token points at the right file.
+    throw new Error(`HTTP ${response.status} (refresh token from ${tokenSource}): ${errorText}`);
   }
 
   const data = await response.json();

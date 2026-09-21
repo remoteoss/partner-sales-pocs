@@ -1,9 +1,21 @@
 import { fetchCustomerToken, fetchPartnerToken, buildGatewayURL } from './get-token.js';
 import { fetchSessionToken, hasSessionToken } from './session.js';
 
-// Endpoints that require partner-level (client_credentials) auth
+// Endpoints that require partner-level (client_credentials) auth.
+// Prefix match - everything underneath these paths is partner-level too.
 const PARTNER_ENDPOINTS = [
   '/v1/companies',
+];
+
+// Partner-level, but ONLY as an exact path (optionally with a query string).
+//
+// `/v1/countries` lists supported countries and is partner-level. The per-country
+// form schemas underneath it - `/v1/countries/{code}/employment_basic_information`,
+// `/v1/countries/{code}/contract_details` - are NOT: they return company-scoped
+// data such as selectable managers and departments, and the API requires a
+// company-scoped token. Matching them by prefix sent them with the partner token
+// and they returned 404.
+const PARTNER_EXACT_ENDPOINTS = [
   '/v1/countries',
 ];
 
@@ -22,7 +34,12 @@ function getAuthType(path, useSessionToken) {
     return 'session';
   }
   
-  // Partner endpoints
+  // Partner endpoints matched exactly (query string allowed)
+  if (PARTNER_EXACT_ENDPOINTS.some(endpoint => path === endpoint || path.startsWith(`${endpoint}?`))) {
+    return 'partner';
+  }
+
+  // Partner endpoints matched by prefix
   if (PARTNER_ENDPOINTS.some(endpoint => path.startsWith(endpoint))) {
     return 'partner';
   }
