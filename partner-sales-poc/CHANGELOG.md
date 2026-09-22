@@ -129,6 +129,23 @@ refresh token needs to be supplied.
 
 ## Still open
 
+**These are ranked, with prescribed fixes, in [ROADMAP.md](ROADMAP.md).** The
+ranking is by what breaks or obscures a live demo and what slows down building
+the next one — not by severity in the abstract, since nothing here is deployed.
+Short version:
+
+| Priority | | |
+|---|---|---|
+| 1 | Make failures legible | `get-token.js` returns bare 500s, hiding actionable gateway messages |
+| 2 | Same-origin `/v1` proxy, delete dead interceptors | Stops tokens reaching the browser; makes SDK traffic visible |
+| 3 | Pre-demo check script | Catch config problems before an audience does |
+| 4 | Multi-profile partner config | Makes a new demo config-only |
+| 5 | Fix the build | Gate for typechecking and CI |
+| 6 | CI | Only worth wiring once 5 is green |
+| 7 | Hygiene tail | Lint, `VITE_COMPANY_ID`, duplicated gateway map, token rotation |
+
+The detail below stays as the record of what was found and when.
+
 | Issue | Impact |
 |-------|--------|
 | **`npm run build` fails, for two stacked reasons** | Blocks deploying. Both pre-existing; `npm run dev` is unaffected because Vite doesn't typecheck |

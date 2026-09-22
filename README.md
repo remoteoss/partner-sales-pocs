@@ -84,6 +84,9 @@ sub-resources — will hit the 404 mid-demo that branch already fixed.
 
 ## Known gotchas
 
+Everything below, plus what to do about it, is ranked in
+[ROADMAP.md](partner-sales-poc/ROADMAP.md).
+
 | | |
 |---|---|
 | `npm run build` fails | Pre-existing on `main` (tsconfig project references). Doesn't affect `npm run dev`. |
